@@ -1,0 +1,60 @@
+（交流可以用英文，本文档中文，保留这句）
+
+# Art of Test 项目说明
+
+## 项目目标
+编写一份汇总广义软件测试的全面教程markdown，要包含大量的习题和参考答案（答案默认折叠）。合适时提及相关函数名但不写代码。
+项目特色是，包含大量的可继续研究的线索。
+包含有经典软件测试（unit/integration/e2e，GUI、浏览器测试）、芯片测试、modal logic, model checking, property-based check (quickcheck), quickspec,人力测试管理等
+
+
+## 工具说明
+当需要时，可以通过 `gemini -p "深入回答：<要问的问题> -m gemini-2.5-pro"` 来获取 gemini-2.5-pro 的参考意见(gemini 系只问 gemini-2.5-pro 不问别人)
+当需要时，可以通过 `echo "<要问的问题>"|llm -m 4.1 来获取 gpt-4.1 的参考意见
+
+## 教程大纲
+
+### 最终章节结构
+文件组织方式为：index.md + chapter1.md + chapter2.md + ...
+index.md 包含指向各章节的 link
+
+### 内容设计原则
+
+3. **交互元素**：
+   - 保持简单，先用静态图像
+   - 逐步增加交互性
+
+5. **章节依赖性**：
+   - 每章尽量自包含
+
+6. **练习设计**：
+   - 理论和实现混合
+   - 包含挑战题
+   - 难度递进
+
+8. **前置知识**：
+   - 在首页明确说明这些前置要求
+
+## 章节格式要求
+
+每个章节应包含：
+
+1. **开篇段落** - 引入本章主题，说明学习目标
+2. **丰富的文字描述** - 不仅是公式，要有充分的文字解释和直观说明
+3. **本章小结** - 总结要点，预告下一章内容
+
+## 输出大小控制
+
+**重要原则**：
+- 输入可以是章节级别的请求（如"创建第2章"）
+- 但输出必须限制在一个子小节（subsection）的大小，不超过
+- 这样确保每次生成的内容精炼且高质量
+
+### 统一样式要求
+2. **练习答案默认折叠** - 使用统一的折叠/展开机制
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
