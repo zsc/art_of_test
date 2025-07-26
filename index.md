@@ -1,239 +1,247 @@
-# Comprehensive Testing: From Theory to Practice
+# 全面测试：从理论到实践
 
-A comprehensive tutorial covering all aspects of testing - from theoretical foundations to practical implementations across software, hardware, and AI systems.
+一份涵盖测试各个方面的综合教程 - 从理论基础到软件、硬件和AI系统的实际实现。
 
-## Prerequisites
+## 前置知识
 
-This tutorial assumes:
-- **Programming**: Proficiency in at least one programming language (examples are language-agnostic)
-- **Mathematics**: Discrete mathematics, basic set theory, propositional and predicate logic
-- **Computer Science**: Understanding of algorithms, data structures, and computational complexity
-- **Systems**: Basic knowledge of computer architecture and operating systems
-- **Statistics**: Probability theory and basic statistical concepts
+本教程假设读者具备：
+- **编程能力**：精通至少一种编程语言（示例与语言无关）
+- **数学基础**：离散数学、基本集合论、命题逻辑和谓词逻辑
+- **计算机科学**：理解算法、数据结构和计算复杂性
+- **系统知识**：计算机体系结构和操作系统的基础知识
+- **统计学**：概率论和基本统计概念
 
-## How to Use This Tutorial
+## 如何使用本教程
 
-- Each chapter is largely self-contained, though later chapters may reference earlier concepts
-- Exercises include solutions in collapsible sections - attempt them before checking answers
-- "Further Research" sections provide paths for deeper exploration
-- Case studies illustrate real-world applications and failures
+- 每章基本自成体系，但后续章节可能引用之前的概念
+- 练习题包含可折叠的解答 - 请先尝试解答再查看答案
+- "进一步研究"部分提供深入探索的方向
+- 案例研究展示实际应用和失败案例
 
-## Table of Contents
+## 目录
 
-### Part I: Foundations & Philosophy
+### 第一部分：基础与哲学
 
-**[Chapter 1: The Philosophy of Testing](chapter1.md)**
-- Why we test: Correctness, reliability, and trust
-- The limits of testing: Dijkstra's observation
-- Testing as empirical science vs. formal verification
-- The economics of testing
-- Case study: Therac-25 and the cost of inadequate testing
+**[第1章：测试的哲学](chapter1.md)**
+- 为什么要测试：正确性、可靠性和信任
+- 测试的局限性：Dijkstra的观察
+- 测试作为经验科学 vs. 形式化验证
+- 测试的经济学
+- 案例研究：Therac-25与测试不足的代价
 
-**[Chapter 2: Testing Theory and Fundamentals](chapter2.md)**
-- Test as specification
-- Observability and controllability
-- Test coverage metrics and their limitations
-- The oracle problem
-- Fault models and error propagation
+**[第2章：测试理论与基础](chapter2.md)**
+- 测试即规范
+- 可观察性和可控制性
+- 测试覆盖率指标及其局限性
+- 预言机问题
+- 故障模型和错误传播
+- 停机问题与测试的理论边界
 
-**[Chapter 3: Universal Testing Principles](chapter3.md)**
-- Testing in hardware vs. software: similarities and differences
-- The test pyramid and its variations
-- Shift-left and shift-right testing
-- Testing in different domains: embedded, distributed, real-time
-- Case study: Intel Pentium FDIV bug
+**[第3章：通用测试原则](chapter3.md)**
+- 硬件测试 vs. 软件测试：相似性和差异
+- 测试金字塔及其变体
+- 左移和右移测试
+- 不同领域的测试：嵌入式、分布式、实时系统
+- 案例研究：Intel Pentium FDIV缺陷
 
-### Part II: Classical Software Testing
+### 第二部分：经典软件测试
 
-**[Chapter 4: Unit Testing](chapter4.md)**
-- Test-driven development (TDD)
-- Mocking, stubbing, and test doubles
-- Parameterized tests
-- Testing pure functions vs. stateful code
-- Popular frameworks overview (JUnit, pytest, Jest)
+**[第4章：单元测试](chapter4.md)**
+- 测试驱动开发（TDD）
+- Mock、Stub和测试替身
+- 参数化测试
+- 纯函数测试 vs. 有状态代码测试
+- 流行框架概览（JUnit、pytest、Jest）
 
-**[Chapter 5: Integration Testing](chapter5.md)**
-- Testing component interactions
-- Contract testing
-- Database and external service testing
-- Test data management
-- Integration test patterns and anti-patterns
+**[第5章：集成测试](chapter5.md)**
+- 测试组件交互
+- 契约测试
+- 数据库和外部服务测试
+- 测试数据管理
+- 集成测试模式与反模式
 
-**[Chapter 6: End-to-End Testing](chapter6.md)**
-- User journey testing
-- Page Object Model and other patterns
-- Handling asynchronicity and flakiness
-- Cross-browser and cross-platform testing
-- Case study: Netflix's approach to E2E testing
+**[第6章：端到端测试](chapter6.md)**
+- 用户旅程测试
+- 页面对象模型和其他模式
+- 处理异步性和不稳定性
+- 跨浏览器和跨平台测试
+- 案例研究：Netflix的E2E测试方法
 
-**[Chapter 7: GUI and Browser Testing](chapter7.md)**
-- DOM manipulation and validation
-- Visual regression testing
-- Accessibility testing
-- Mobile testing considerations
-- Tools: Selenium, Playwright, Cypress
+**[第7章：GUI和浏览器测试](chapter7.md)**
+- DOM操作和验证
+- 视觉回归测试
+- 可访问性测试
+- 移动端测试考虑
+- 工具：Selenium、Playwright、Cypress
+- Presburger算术在数组边界测试中的应用
 
-### Part III: Formal Methods & Verification
+### 第三部分：形式化方法与验证
 
-**[Chapter 8: Introduction to Formal Verification](chapter8.md)**
-- Formal specifications: Z notation, TLA+
-- Hoare logic and program correctness
-- Weakest precondition calculus
-- Loop invariants and termination
-- Verification conditions
+**[第8章：形式化验证导论](chapter8.md)**
+- 形式化规约：Z记法、TLA+
+- Hoare逻辑与程序正确性
+- 最弱前置条件演算
+- 循环不变式与终止性
+- 验证条件
+- 自动定理证明器及其在测试中的应用
+- Curry-Howard同构：程序即证明
 
-**[Chapter 9: Model Checking](chapter9.md)**
-- Kripke structures and transition systems
-- Temporal logics: LTL, CTL, CTL*
-- Model checking algorithms
-- State space explosion and mitigation
-- Tools: SPIN, NuSMV, TLC
+**[第9章：模型检测](chapter9.md)**
+- Kripke结构和转移系统
+- 时序逻辑：LTL、CTL、CTL*
+- 模型检测算法
+- 状态空间爆炸及其缓解：ROBDD和SAT求解器
+- 抽象解释与模型检测的结合
+- 工具：SPIN、NuSMV、TLC
 
-**[Chapter 10: Property-Based Testing](chapter10.md)**
-- From examples to properties
-- Generators and shrinking
-- Stateful property testing
-- QuickCheck and its descendants
-- Integration with type systems
+**[第10章：基于属性的测试](chapter10.md)**
+- 从示例到属性
+- 生成器和缩小
+- 有状态属性测试
+- QuickCheck及其衍生品
+- 与类型系统的集成
+- 类型理论（Lambda立方体）在测试中的应用
 
-**[Chapter 11: Specification Mining and Synthesis](chapter11.md)**
-- QuickSpec and automatic specification discovery
-- Invariant inference
-- Learning from execution traces
-- Specification synthesis from examples
-- Case study: Daikon dynamic invariant detection
+**[第11章：规约挖掘与合成](chapter11.md)**
+- QuickSpec和自动规约发现
+- 不变式推断
+- 从执行轨迹学习
+- 从示例合成规约
+- 静态程序分析：数据流分析、控制流分析
+- 抽象解释理论与实践
+- 案例研究：Daikon动态不变式检测
 
-### Part IV: Specialized Testing Domains
+### 第四部分：专业测试领域
 
-**[Chapter 12: Hardware and Chip Testing](chapter12.md)**
-- Design for Testability (DFT)
-- Built-In Self-Test (BIST)
-- Boundary scan and JTAG
-- Fault models: stuck-at, bridging, delay
-- Automatic Test Pattern Generation (ATPG)
+**[第12章：硬件和芯片测试](chapter12.md)**
+- 可测试性设计（DFT）
+- 内建自测试（BIST）
+- 边界扫描和JTAG
+- 故障模型：固定故障、桥接故障、延迟故障
+- 自动测试向量生成（ATPG）：SAT和ROBDD方法
 
-**[Chapter 13: Testing Machine Learning Systems](chapter13.md)**
-- Data validation and schema testing
-- Model testing: accuracy, fairness, robustness
-- Adversarial testing and security
-- A/B testing for ML deployment
-- Monitoring model drift
-- Case study: Testing autonomous vehicle perception
+**[第13章：机器学习系统测试](chapter13.md)**
+- 数据验证和模式测试
+- 模型测试：准确性、公平性、鲁棒性
+- 对抗测试和安全性
+- ML部署的A/B测试
+- 监控模型漂移
+- 案例研究：自动驾驶车辆感知测试
 
-**[Chapter 14: Testing Distributed Systems](chapter14.md)**
-- Distributed system failure modes
-- Chaos engineering principles
-- Fault injection frameworks
-- Linearizability testing
-- Network partition testing
-- Case study: Jepsen analyses
+**[第14章：分布式系统测试](chapter14.md)**
+- 分布式系统故障模式
+- 混沌工程原则
+- 故障注入框架
+- 线性一致性测试
+- 网络分区测试
+- 案例研究：Jepsen分析
 
-**[Chapter 15: Performance and Load Testing](chapter15.md)**
-- Performance metrics and SLAs
-- Load testing vs. stress testing vs. spike testing
-- Profiling and bottleneck identification
-- Statistical analysis of results
-- Tools: JMeter, Gatling, wrk
+**[第15章：性能和负载测试](chapter15.md)**
+- 性能指标和SLA
+- 负载测试 vs. 压力测试 vs. 峰值测试
+- 性能分析和瓶颈识别
+- 结果的统计分析
+- 工具：JMeter、Gatling、wrk
 
-### Part V: Advanced Testing Techniques
+### 第五部分：高级测试技术
 
-**[Chapter 16: Mutation Testing](chapter16.md)**
-- Mutation operators
-- Mutation score and test effectiveness
-- Equivalent mutants problem
-- Higher-order mutations
-- Tools and practical application
+**[第16章：变异测试](chapter16.md)**
+- 变异算子
+- 变异分数和测试有效性
+- 等价变异体问题
+- 高阶变异
+- 工具和实际应用
 
-**[Chapter 17: Fuzzing and Security Testing](chapter17.md)**
-- Fuzzing strategies: black-box, white-box, grey-box
-- Coverage-guided fuzzing
-- Grammar-based fuzzing
-- Taint analysis
-- Case study: Finding Heartbleed with fuzzing
+**[第17章：模糊测试和安全测试](chapter17.md)**
+- 模糊测试策略：黑盒、白盒、灰盒
+- 覆盖率引导模糊测试
+- 基于语法的模糊测试
+- 污点分析
+- 案例研究：用模糊测试发现Heartbleed
 
-**[Chapter 18: Metamorphic Testing](chapter18.md)**
-- Metamorphic relations
-- Applications in scientific computing
-- Testing non-testable programs
-- Metamorphic testing for ML
-- Automatic discovery of metamorphic relations
+**[第18章：蜕变测试](chapter18.md)**
+- 蜕变关系
+- 在科学计算中的应用
+- 测试不可测试的程序
+- 机器学习的蜕变测试
+- 蜕变关系的自动发现
 
-**[Chapter 19: Concurrency Testing](chapter19.md)**
-- Race conditions and deadlocks
-- Happens-before relations
-- Dynamic partial-order reduction
-- Stress testing vs. systematic testing
-- Tools: ThreadSanitizer, Chess
+**[第19章：并发测试](chapter19.md)**
+- 竞态条件和死锁
+- Happens-before关系
+- 动态偏序约简
+- 压力测试 vs. 系统测试
+- 工具：ThreadSanitizer、Chess
 
-### Part VI: Test Management & Process
+### 第六部分：测试管理与流程
 
-**[Chapter 20: Test Planning and Strategy](chapter20.md)**
-- Risk-based testing
-- Test case prioritization
-- Test estimation techniques
-- Test automation ROI
-- Building a testing culture
+**[第20章：测试计划与策略](chapter20.md)**
+- 基于风险的测试
+- 测试用例优先级排序
+- 测试估算技术
+- 测试自动化ROI
+- 构建测试文化
 
-**[Chapter 21: Test Case Management](chapter21.md)**
-- Test case design techniques
-- Equivalence partitioning and boundary analysis
-- Combinatorial testing
-- Test suite minimization
-- Traceability and requirements coverage
+**[第21章：测试用例管理](chapter21.md)**
+- 测试用例设计技术
+- 等价类划分和边界分析
+- 组合测试
+- 测试套件最小化
+- 可追溯性和需求覆盖率
 
-**[Chapter 22: Continuous Testing and DevOps](chapter22.md)**
-- Testing in CI/CD pipelines
-- Test parallelization and distribution
-- Flaky test management
-- Test impact analysis
-- Progressive deployment strategies
+**[第22章：持续测试和DevOps](chapter22.md)**
+- CI/CD管道中的测试
+- 测试并行化和分布
+- 不稳定测试管理
+- 测试影响分析
+- 渐进式部署策略
 
-### Part VII: Emerging Frontiers
+### 第七部分：新兴前沿
 
-**[Chapter 23: Quantum Program Testing](chapter23.md)**
-- Quantum states and measurement
-- Testing quantum circuits
-- Quantum assertion frameworks
-- Property testing for quantum programs
-- Current tools and limitations
+**[第23章：量子程序测试](chapter23.md)**
+- 量子态和测量
+- 测试量子电路
+- 量子断言框架
+- 量子程序的属性测试
+- 当前工具和局限性
 
-**[Chapter 24: Testing in the Age of AI](chapter24.md)**
-- AI-assisted test generation
-- Self-healing tests
-- Predictive test selection
-- Natural language test specifications
-- Future directions
+**[第24章：AI时代的测试](chapter24.md)**
+- AI辅助测试生成
+- 自我修复测试
+- 预测性测试选择
+- 自然语言测试规约
+- 未来方向
 
-## Appendices
+## 附录
 
-**[Appendix A: Mathematical Foundations](appendix-a.md)**
-- Set theory and relations
-- Propositional and predicate logic
-- Graph theory basics
-- Probability and statistics review
+**[附录A：数学基础](appendix-a.md)**
+- 集合论和关系
+- 命题逻辑和谓词逻辑
+- 图论基础
+- 概率与统计复习
 
-**[Appendix B: Common Testing Patterns](appendix-b.md)**
-- Test design patterns catalog
-- Anti-patterns to avoid
-- Language-specific considerations
+**[附录B：常见测试模式](appendix-b.md)**
+- 测试设计模式目录
+- 需要避免的反模式
+- 特定语言的考虑
 
-**[Appendix C: Testing Tools Ecosystem](appendix-c.md)**
-- Comprehensive tool comparison
-- Integration strategies
-- Building custom testing tools
+**[附录C：测试工具生态系统](appendix-c.md)**
+- 全面的工具比较
+- 集成策略
+- 构建自定义测试工具
 
-## About This Tutorial
+## 关于本教程
 
-This tutorial is designed for experienced programmers and AI scientists who want a comprehensive understanding of testing across all domains. Each chapter combines rigorous theoretical foundations with practical applications and includes exercises to reinforce learning.
+本教程专为有经验的程序员和AI科学家设计，旨在全面理解各个领域的测试。每章结合严格的理论基础和实际应用，并包含练习题以加强学习效果。
 
-### Contributing
+### 贡献
 
-Found an error or have suggestions? Please open an issue at [repository link].
+发现错误或有建议？请在[repository link]提交issue。
 
-### License
+### 许可
 
-[License information]
+[许可信息]
 
 ---
 
-*Begin your journey with [Chapter 1: The Philosophy of Testing](chapter1.md) or jump to any chapter that interests you.*
+*从[第1章：测试的哲学](chapter1.md)开始您的学习之旅，或跳转到任何感兴趣的章节。*
