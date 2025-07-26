@@ -1,6 +1,6 @@
 （交流可以用英文，本文档中文，保留这句）
 
-# Art of Test 项目说明
+# Comprehensive Testing: From Theory to Practice 项目说明
 
 ## 项目目标
 编写一份汇总广义软件测试的全面教程markdown，要包含大量的习题和参考答案（答案默认折叠）。合适时提及相关函数名但不写代码。
