@@ -19,17 +19,7 @@
 - 量化指标：SCOAP可观察性度量
 
 **可测试性度量SCOAP**：
-```
-组合逻辑可控制性：
-CC0(X) = min{CC0(inputs)} + 1  (AND门设0)
-CC1(X) = sum{CC1(inputs)} + 1  (AND门设1)
-
-时序逻辑可控制性：
-考虑时钟和复位信号的额外代价
-
-可观察性：
-CO(X) = min{CO(fanouts)} + 1
-```
+**[SCOAP可测试性度量：结合可控制性和可观察性的定量分析方法，通过递归计算为每个电路节点分配数值评分]**
 
 ### 12.1.2 扫描设计
 
@@ -39,10 +29,7 @@ CO(X) = min{CO(fanouts)} + 1
 - 大幅提高内部节点的可测试性
 
 **扫描触发器结构**：
-```
-正常模式：D → Q
-测试模式：扫描输入 → Q（通过多路选择器）
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **全扫描设计优势**：
 - 将时序电路测试转化为组合电路测试
@@ -106,15 +93,7 @@ SCOAP可测试性计算示例：
 
 考虑电路：Z = A·B + C·D
 
-```
-       A ──┐
-           ├── AND1 ──┐
-       B ──┘          │
-                      ├── OR ── Z
-       C ──┐          │
-           ├── AND2 ──┘
-       D ──┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **可控制性计算（从输入到输出）**：
 
@@ -166,42 +145,13 @@ AND门到输入：
 4位计数器扫描链设计：
 
 **原始计数器结构**：
-```
-CLK ──┬─┬─┬─┬── (时钟信号)
-      │ │ │ │
-    ┌─▼─▼─▼─▼─┐
-    │ FF0 FF1 FF2 FF3 │  (4个D触发器)
-    └─┬─┬─┬─┬─┘
-      │ │ │ │
-Q[3:0]─┘ │ │ │
-组合逻辑 ──┘ │ │  (计数逻辑)
-           ┘ │
-            ┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **扫描触发器设计**：
-```
-每个触发器增加：
-- 扫描输入端口 (SI)
-- 扫描使能信号 (SE)
-- 多路选择器
-
-      SE
-       │
-   D ──┬── MUX ──┐
-       │         │
-   SI ─┘         ├── D触发器 ── Q
-                 │
-   CLK ──────────┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **完整扫描链连接**：
-```
-SCAN_IN ── FF0.SI ── FF0.Q ── FF1.SI ── FF1.Q ── FF2.SI ── FF2.Q ── FF3.SI ── FF3.Q ── SCAN_OUT
-           │                  │                  │                  │
-           │                  │                  │                  │
-       正常逻辑输入        正常逻辑输入        正常逻辑输入        正常逻辑输入
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **控制信号**：
 - SE=0：正常功能模式
@@ -209,40 +159,16 @@ SCAN_IN ── FF0.SI ── FF0.Q ── FF1.SI ── FF1.Q ── FF2.SI ─�
 
 **测试过程**：
 1. **扫描载入阶段**：
-   ```
-   SE = 1  (切换到扫描模式)
-   通过SCAN_IN串行载入测试向量：
-   时钟1：载入FF0
-   时钟2：载入FF1，FF0数据移至FF1
-   时钟3：载入FF2，数据依次移位
-   时钟4：载入FF3，完成4位数据载入
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **功能执行阶段**：
-   ```
-   SE = 0  (切换到功能模式)
-   时钟1次：执行一个计数周期
-   观察组合逻辑行为
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 3. **扫描卸载阶段**：
-   ```
-   SE = 1  (切换回扫描模式)
-   时钟4次：将结果串行移出
-   在SCAN_OUT观察测试响应
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **测试向量示例**：
-```
-测试计数功能：
-载入：0000 → 期望：0001
-载入：0001 → 期望：0010
-载入：1111 → 期望：0000 (溢出)
-
-测试组合逻辑故障：
-载入：1010 → 检查特定逻辑门
-载入：0101 → 交替模式测试
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **优势**：
 - 100%内部状态可控/可观
@@ -277,13 +203,7 @@ SCAN_IN ── FF0.SI ── FF0.Q ── FF1.SI ── FF1.Q ── FF2.SI ─�
 - BIST控制器
 
 **典型BIST流程**：
-```
-1. 初始化：复位所有BIST电路
-2. 测试生成：TPG产生测试向量
-3. 施加激励：将测试向量施加到CUT
-4. 响应分析：RA分析CUT输出
-5. 结果判断：比较期望与实际响应
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.2.2 伪随机测试生成
 
@@ -293,17 +213,7 @@ SCAN_IN ── FF0.SI ── FF0.Q ── FF1.SI ── FF1.Q ── FF2.SI ─�
 - 最大长度序列特性
 
 **LFSR设计要点**：
-```
-n位LFSR可生成2^n-1长度序列
-反馈多项式选择：
-- 本原多项式保证最大周期
-- 不同多项式产生不同序列
-
-标准反馈多项式：
-4位：x^4 + x + 1
-8位：x^8 + x^4 + x^3 + x^2 + 1
-16位：x^16 + x^12 + x^3 + x + 1
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **种子依赖性问题**：
 - 全0状态为吸收态
@@ -347,17 +257,7 @@ n位LFSR可生成2^n-1长度序列
 - 数据保持故障：动态失效
 
 **March算法家族**：
-```
-March C-：
-{⇕(w0); ⇑(r0,w1); ⇑(r1,w0); ⇓(r0,w1); ⇓(r1,w0); ⇕(r0)}
-
-符号说明：
-⇑：地址递增
-⇓：地址递减  
-⇕：任意顺序
-r0/r1：读0/读1
-w0/w1：写0/写1
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **算法复杂度对比**：
 - March C-：11n（线性）
@@ -392,71 +292,16 @@ w0/w1：写0/写1
 8位LFSR BIST系统设计：
 
 **LFSR结构**：
-```
-使用本原多项式：x^8 + x^4 + x^3 + x^2 + 1
-
-8位LFSR连接：
-┌─────────────────────────────────┐
-│  ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐  │
-└─▶│Q7├─│Q6├─│Q5├─│Q4├─│Q3├─│Q2├─│Q1├─│Q0├──┤
-   └──┘ └──┘ └──┘ └─┬┘ └─┬┘ └─┬┘ └──┘ └──┘  │
-                    │    │    │             │
-                    └────┼────┼─────────────┘
-                         │    │
-                         └────┼─────────────┐
-                              │             │
-                              └─────────────┤
-                                           XOR
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **完整BIST系统**：
-```
-        ┌─────────────┐
-        │ BIST控制器  │
-        └─────┬───────┘
-              │控制信号
-    ┌─────────▼────────┐     ┌──────────────┐
-    │   8位LFSR       │────▶│   待测电路    │
-    │  (测试生成器)    │     │    (CUT)     │
-    └──────────────────┘     └──────┬───────┘
-                                    │
-                             ┌──────▼───────┐
-                             │   8位MISR    │
-                             │ (响应分析器)  │
-                             └──────┬───────┘
-                                    │
-                             ┌──────▼───────┐
-                             │  比较器      │
-                             │ (期望签名)   │
-                             └──────────────┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **MISR结构**：
-```
-使用相同的本原多项式进行响应压缩
-输入来自CUT的多位输出，通过XOR网络反馈
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **测试流程**：
-```
-1. 初始化：
-   - LFSR种子：0x01 (避免全0)
-   - MISR清零：0x00
-   - 测试计数器：0
-
-2. 测试循环 (重复255次)：
-   for i = 1 to 255:
-       pattern = LFSR.next()
-       response = CUT.apply(pattern)
-       MISR.compress(response)
-       
-3. 结果检查：
-   signature = MISR.value
-   if signature == expected_signature:
-       PASS
-   else:
-       FAIL
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **覆盖率分析**：
 
@@ -467,27 +312,7 @@ w0/w1：写0/写1
 - 缺失：全0向量（通常不是问题）
 
 实际考虑：
-```python
-# 故障覆盖率评估
-def evaluate_coverage(circuit, fault_list):
-    detected_faults = 0
-    
-    # 生成LFSR序列
-    lfsr_patterns = generate_lfsr_sequence(seed=0x01, length=255)
-    
-    for fault in fault_list:
-        fault_circuit = inject_fault(circuit, fault)
-        
-        for pattern in lfsr_patterns:
-            good_response = circuit.simulate(pattern)
-            fault_response = fault_circuit.simulate(pattern)
-            
-            if good_response != fault_response:
-                detected_faults += 1
-                break  # 故障已检测
-    
-    return detected_faults / len(fault_list)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 典型覆盖率：
 - 固定故障：95-98%
@@ -500,16 +325,7 @@ def evaluate_coverage(circuit, fault_list):
    - 选择覆盖率最高的
 
 2. **种子优化**：
-   ```
-   # 尝试多个种子
-   seeds = [0x01, 0x03, 0x05, 0x0F, 0x33, 0x55, 0xAA, 0xFF]
-   best_coverage = 0
-   for seed in seeds:
-       coverage = evaluate_with_seed(seed)
-       if coverage > best_coverage:
-           best_seed = seed
-           best_coverage = coverage
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 3. **混合方法**：
    - LFSR伪随机测试（主要）
@@ -532,14 +348,7 @@ def evaluate_coverage(circuit, fault_list):
 **1. MATS (Modified Algorithmic Test Sequence)**
 
 算法：
-```
-{⇕(w0); ⇑(r0,w1); ⇓(r1,w0)}
-
-步骤：
-1. 写0到所有单元（任意顺序）
-2. 读0写1，地址递增
-3. 读1写0，地址递减
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 特性：
 - 复杂度：4n
@@ -550,17 +359,7 @@ def evaluate_coverage(circuit, fault_list):
 **2. March C-**
 
 算法：
-```
-{⇕(w0); ⇑(r0,w1); ⇑(r1,w0); ⇓(r0,w1); ⇓(r1,w0); ⇕(r0)}
-
-详细步骤：
-1. 写0到所有位置（任意顺序）
-2. 地址递增：读0，写1
-3. 地址递增：读1，写0  
-4. 地址递减：读0，写1
-5. 地址递减：读1，写0
-6. 读0（任意顺序）
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 特性：
 - 复杂度：11n
@@ -571,9 +370,7 @@ def evaluate_coverage(circuit, fault_list):
 **3. March B**
 
 算法：
-```
-{⇕(w0); ⇑(r0,w1,r1,w0,r0,w1); ⇑(r1,w0,w1); ⇓(r1,w0,w1,w0); ⇕(r0)}
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 特性：
 - 复杂度：17n
@@ -584,9 +381,7 @@ def evaluate_coverage(circuit, fault_list):
 **4. March A**
 
 算法：
-```
-{⇕(w0); ⇑(r0,w1,r1,w0,r0,w1); ⇓(r1,w0,w1,w0); ⇕(r0)}
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 特性：
 - 复杂度：15n
@@ -596,18 +391,7 @@ def evaluate_coverage(circuit, fault_list):
 **5. GALPAT (Galloping Pattern)**
 
 算法：
-```
-for base_address in all_addresses:
-    write 0 to all cells
-    write 1 to base_address
-    for other_address in all_other_addresses:
-        read base_address (expect 1)
-        read other_address (expect 0)
-        write 1 to other_address
-        read base_address (expect 1)
-        read other_address (expect 1)
-        write 0 to other_address
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 特性：
 - 复杂度：O(n²)
@@ -639,41 +423,7 @@ for base_address in all_addresses:
 
 **选择策略**：
 
-```python
-def select_memory_test_algorithm(memory_size, time_budget, quality_requirement):
-    if quality_requirement == "ULTRA_HIGH":
-        if time_budget > memory_size * memory_size / 1000:
-            return "GALPAT"
-        else:
-            return "March B"
-    
-    elif quality_requirement == "HIGH":
-        return "March B" if time_budget > memory_size * 20 else "March A"
-    
-    elif quality_requirement == "MEDIUM":
-        return "March C-"
-    
-    else:  # BASIC
-        return "MATS"
-
-# 混合策略
-def hybrid_memory_test(memory):
-    # 第一阶段：快速筛选
-    if not run_mats(memory):
-        return "FAIL_BASIC"
-    
-    # 第二阶段：标准测试
-    if not run_march_c_minus(memory):
-        return "FAIL_STANDARD"
-    
-    # 第三阶段：关键位置详细测试
-    critical_addresses = identify_critical_addresses(memory)
-    for addr in critical_addresses:
-        if not run_galpat_local(memory, addr):
-            return "FAIL_CRITICAL"
-    
-    return "PASS"
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **新兴算法和技术**：
 
@@ -732,13 +482,7 @@ def hybrid_memory_test(memory):
 ### 12.3.2 边界扫描架构
 
 **边界扫描单元（BSC）**：
-```
-每个I/O引脚对应一个BSC，包含：
-- 输入捕获触发器
-- 输出控制触发器
-- 三态控制触发器
-- 多路选择器网络
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **BSC工作模式**：
 - 正常模式：信号正常传输
@@ -747,15 +491,7 @@ def hybrid_memory_test(memory):
 - 更新模式：将扫描数据施加到引脚
 
 **典型BSC结构**：
-```
-核心输出 ──┬── MUX1 ── 输出引脚
-          │
-扫描链 ────┘
-
-输入引脚 ──┬── MUX2 ── 核心输入
-          │
-          └── 捕获FF ── 扫描链
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.3.3 测试访问端口（TAP）
 
@@ -765,15 +501,7 @@ def hybrid_memory_test(memory):
 - 协调指令和数据的操作
 
 **关键状态**：
-```
-Test-Logic-Reset：复位状态
-Run-Test/Idle：空闲状态
-Select-DR-Scan：选择数据寄存器
-Capture-DR：捕获数据
-Shift-DR：移位数据
-Update-DR：更新输出
-Select-IR-Scan：选择指令寄存器
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **指令寄存器（IR）**：
 - 存储当前测试指令
@@ -805,13 +533,7 @@ Select-IR-Scan：选择指令寄存器
 ### 12.3.5 板级测试应用
 
 **互连测试**：
-```
-测试目标：
-- 短路检测
-- 开路检测  
-- 桥接故障
-- 引脚到引脚连接验证
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **测试向量生成**：
 - 基于网表信息
@@ -850,170 +572,39 @@ Select-IR-Scan：选择指令寄存器
 4引脚器件JTAG边界扫描设计：
 
 **器件规格**：
-```
-器件：4位加法器
-引脚：A[1:0], B[1:0], Sum[2:0], Carry_out
-功能：Sum = A + B
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **边界扫描单元分配**：
-```
-BSC0: A[0] (输入)
-BSC1: A[1] (输入)  
-BSC2: B[0] (输入)
-BSC3: B[1] (输入)
-BSC4: Sum[0] (输出)
-BSC5: Sum[1] (输出)
-BSC6: Sum[2] (输出)
-BSC7: Carry_out (输出)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **JTAG接口**：
-```
-标准4线接口：
-TCK  ── 测试时钟输入
-TMS  ── 测试模式选择
-TDI  ── 测试数据输入
-TDO  ── 测试数据输出
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **边界扫描链连接**：
-```
-TDI ── BSC0 ── BSC1 ── BSC2 ── BSC3 ── BSC4 ── BSC5 ── BSC6 ── BSC7 ── TDO
-       │       │       │       │       │       │       │       │
-       A[0]    A[1]    B[0]    B[1]   Sum[0]  Sum[1]  Sum[2]  Carry_out
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **输入BSC结构（以A[0]为例）**：
-```
-              UpdateDR
-                 │
-   A[0]引脚 ──┬── │ ── 内核A[0]输入
-             │   │
-         ┌───▼───▼───┐
-         │ 捕获FF    │ ── 扫描输出
-         └───▲───────┘
-             │
-         CaptureDR
-             
-扫描输入 ───── 移位FF ────── 扫描输出
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **输出BSC结构（以Sum[0]为例）**：
-```
-内核Sum[0] ──┬── MUX ──┬── Sum[0]引脚
-            │       │
-            │   ┌───▼───┐
-            │   │更新FF │
-            │   └───▲───┘
-            │       │
-            │   UpdateDR
-            │
-        ┌───▼───────┐
-        │ 捕获FF    │ ── 扫描输出  
-        └───▲───────┘
-            │
-        CaptureDR
-        
-扫描输入 ───── 移位FF ────── 扫描输出
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **TAP控制器状态**：
-```
-Test-Logic-Reset (默认)
-    │ TMS=0
-    ▼
-Run-Test/Idle
-    │ TMS=1
-    ▼
-Select-DR-Scan
-    │ TMS=0
-    ▼
-Capture-DR ── 捕获所有BSC当前值
-    │ TMS=0
-    ▼
-Shift-DR ── 移位8次（8个BSC）
-    │ TMS=1
-    ▼
-Update-DR ── 更新所有输出BSC
-    │ TMS=0
-    ▼
-Run-Test/Idle
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **指令寄存器定义**：
-```
-3位指令寄存器（支持8条指令）：
-
-000: BYPASS   - 1位绕过寄存器
-001: SAMPLE   - 采样所有边界单元
-010: PRELOAD  - 预加载测试数据
-011: EXTEST   - 外部测试（激活边界扫描）
-100: INTEST   - 内部测试
-101-111: 用户定义指令
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **测试序列示例**：
 
 1. **功能测试**：
-```
-步骤1：载入SAMPLE指令
-TMS序列：1,1,0,0,0  (进入Shift-IR)
-TDI数据：001        (SAMPLE指令)
-TMS：1,1,0         (Update-IR)
-
-步骤2：设置输入值A=01, B=10
-TMS：1,0,0         (进入Capture-DR)
-载入8位数据：00100100 (对应A[0]=0,A[1]=1,B[0]=0,B[1]=1)
-
-步骤3：切换到EXTEST执行测试
-步骤4：读取输出Sum和Carry
-期望结果：Sum=011, Carry=0 (1+2=3)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **互连测试**：
-```
-测试A[0]到Sum[0]连接：
-1. 载入EXTEST指令
-2. A[0]=1, 其他输入=0
-3. 检查Sum[0]=1（如果只有A[0]贡献）
-4. 重复测试其他引脚
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **边界扫描描述语言（BSDL）**：
-```
-entity ADDER4 is
-port (
-    A: in bit_vector(1 downto 0);
-    B: in bit_vector(1 downto 0);
-    Sum: out bit_vector(2 downto 0);
-    Carry_out: out bit;
-    
-    TCK: in bit;
-    TMS: in bit;
-    TDI: in bit;
-    TDO: out bit
-);
-use STD_1149_1_1990.all;
-
-attribute INSTRUCTION_LENGTH of ADDER4: entity is 3;
-attribute INSTRUCTION_OPCODE of ADDER4: entity is
-    "BYPASS (000)," &
-    "SAMPLE (001)," &
-    "EXTEST (011)";
-
-attribute BOUNDARY_LENGTH of ADDER4: entity is 8;
-attribute BOUNDARY_REGISTER of ADDER4: entity is
-    "0 (BC_1, A(0), input, X)," &
-    "1 (BC_1, A(1), input, X)," &
-    "2 (BC_1, B(0), input, X)," &
-    "3 (BC_1, B(1), input, X)," &
-    "4 (BC_1, Sum(0), output3, X, 8, 1, Z)," &
-    "5 (BC_1, Sum(1), output3, X, 8, 1, Z)," &
-    "6 (BC_1, Sum(2), output3, X, 8, 1, Z)," &
-    "7 (BC_1, Carry_out, output3, X, 8, 1, Z)";
-end ADDER4;
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **测试覆盖率分析**：
 - 引脚级短路/开路：100%
@@ -1032,146 +623,30 @@ JTAG板级测试分析：
 **优势分析**：
 
 1. **标准化和互操作性**：
-   ```
-   优势：
-   - IEEE 1149.1标准确保兼容性
-   - 所有支持JTAG的器件可统一测试
-   - 测试设备和软件标准化
-   - 降低开发和维护成本
-   
-   实例：
-   - 不同厂商的芯片可在同一测试系统中
-   - 测试向量格式标准（SVF, STAPL）
-   - ATE设备广泛支持
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **非侵入式测试**：
-   ```
-   优势：
-   - 不需要物理探针接触
-   - 避免高频信号完整性问题
-   - 可测试BGA、QFN等难接触封装
-   - 减少测试治具复杂度
-   
-   对比传统ICT：
-   传统：需要每个网络一个测试点
-   JTAG：只需4-5个测试信号
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 3. **高故障诊断能力**：
-   ```python
-   # 故障定位精度
-   class JTAGDiagnostics:
-       def locate_fault(self, expected, actual):
-           """精确到引脚级的故障定位"""
-           fault_pins = []
-           
-           for pin_idx, (exp, act) in enumerate(zip(expected, actual)):
-               if exp != act:
-                   pin_info = self.get_pin_info(pin_idx)
-                   fault_pins.append({
-                       'pin': pin_info.name,
-                       'net': pin_info.net,
-                       'expected': exp,
-                       'actual': act,
-                       'fault_type': self.classify_fault(exp, act)
-                   })
-           
-           return fault_pins
-   
-   # 故障分类
-   def classify_fault(self, expected, actual):
-       if expected == 1 and actual == 0:
-           return "SHORT_TO_GND"
-       elif expected == 0 and actual == 1:
-           return "SHORT_TO_VCC"
-       else:
-           return "UNKNOWN"
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 4. **成本效益**：
-   ```
-   成本对比（相对于ICT）：
-   - 测试治具成本：10-20%
-   - 开发时间：30-50%
-   - 维护成本：20-30%
-   - 测试时间：50-80%（但测试范围不同）
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **限制分析**：
 
 1. **测试速度限制**：
-   ```
-   限制因素：
-   - 串行扫描链：8位数据需要8个时钟
-   - 典型频率：1-50MHz（远低于功能频率）
-   - 大型器件扫描链很长（数千位）
-   
-   时间计算：
-   scan_time = (boundary_length / frequency) * test_vectors
-   
-   实例：
-   1000位边界链 @ 10MHz
-   100个测试向量
-   时间 = (1000/10M) * 100 = 10ms
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **故障覆盖范围**：
-   ```
-   能检测的故障：
-   ✓ 引脚间短路/开路
-   ✓ 电源/地短路
-   ✓ 互连故障
-   ✓ 边界扫描单元故障
-   
-   不能检测的故障：
-   ✗ 模拟电路故障
-   ✗ 时序相关故障
-   ✗ 功能逻辑故障（需要INTEST）
-   ✗ 电源完整性问题
-   ✗ 高频信号完整性
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 3. **器件依赖性**：
-   ```
-   限制：
-   - 要求所有关键器件支持JTAG
-   - 非JTAG器件的网络难以测试
-   - 模拟器件通常不支持
-   - 某些器件JTAG实现不完善
-   
-   解决方案：
-   - 混合测试策略
-   - 间接测试方法
-   - 功能测试补充
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 4. **复杂性管理**：
-   ```python
-   # JTAG链管理复杂性
-   class JTAGChainManager:
-       def __init__(self, devices):
-           self.devices = devices
-           self.total_ir_length = sum(d.ir_length for d in devices)
-           self.total_dr_length = {}  # 依赖于当前指令
-       
-       def load_instruction(self, device_id, instruction):
-           """载入指令到特定器件"""
-           # 需要计算每个器件在链中的位置
-           # 其他器件载入BYPASS
-           ir_data = self.build_ir_vector(device_id, instruction)
-           self.shift_ir(ir_data)
-       
-       def build_ir_vector(self, target_device, instruction):
-           """构建整个指令寄存器向量"""
-           vector = []
-           for device in self.devices:
-               if device.id == target_device:
-                   vector.extend(instruction)
-               else:
-                   vector.extend(device.bypass_instruction)
-           return vector
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **性能对比表**：
 
@@ -1187,47 +662,13 @@ JTAG板级测试分析：
 **最佳应用场景**：
 
 1. **适合JTAG的场景**：
-   ```
-   - 高密度SMT板卡
-   - BGA封装器件较多
-   - 多层板，内层信号多
-   - 产品生命周期长
-   - 成本敏感应用
-   - 需要在线编程/调试
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **不适合的场景**：
-   ```
-   - 纯模拟电路板
-   - 极高频应用
-   - 简单双面板
-   - 一次性产品
-   - 对测试时间极敏感
-   ```
+   **[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **混合测试策略**：
-```python
-def hybrid_test_strategy(board):
-    results = {}
-    
-    # 第一阶段：JTAG互连测试
-    jtag_result = jtag_interconnect_test(board)
-    results['interconnect'] = jtag_result
-    
-    if not jtag_result.passed:
-        return results  # 互连故障，无需继续
-    
-    # 第二阶段：功能测试
-    func_result = functional_test(board)
-    results['functional'] = func_result
-    
-    # 第三阶段：关键信号ICT测试
-    critical_nets = identify_critical_nets(board)
-    ict_result = ict_test(board, critical_nets)
-    results['ict'] = ict_result
-    
-    return results
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **结论**：
 JTAG是板级测试的重要工具，特别适合现代高密度电路板。虽然有速度和覆盖范围的限制，但其标准化、成本效益和诊断能力使其成为测试策略的核心组件。最佳实践是将JTAG与其他测试方法结合，发挥各自优势。
@@ -1258,11 +699,7 @@ JTAG是板级测试的重要工具，特别适合现代高密度电路板。虽�
 - 接地短路→sa0
 
 **故障数量计算**：
-```
-n个信号线的电路：
-单固定故障数 = 2n（每条线sa0和sa1）
-假设：故障相互独立，单故障模型
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **检测条件**：
 为检测线路L的sa0故障：
@@ -1292,12 +729,7 @@ n个信号线的电路：
    - 任一信号为1，结果为1
 
 **桥接故障检测**：
-```
-检测A与B桥接：
-1. 设置A=0, B=1（或相反）
-2. 观察A和B的实际值
-3. 如果都变为0（线与）或都变为1（线或），则检测到桥接
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.4.3 延迟故障模型
 
@@ -1372,21 +804,10 @@ n个信号线的电路：
 
 **电路：Z = A · B**
 
-```
-A ──┐
-    ├── AND ── Z
-B ──┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **故障列表**：
-```
-1. A sa0 (输入A固定为0)
-2. A sa1 (输入A固定为1)
-3. B sa0 (输入B固定为0)
-4. B sa1 (输入B固定为1)
-5. Z sa0 (输出Z固定为0)
-6. Z sa1 (输出Z固定为1)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **故障检测分析**：
 
@@ -1425,33 +846,15 @@ B ──┘
 **测试向量集合**：
 
 完整测试向量（4个向量，覆盖所有故障）：
-```
-向量1：A=0, B=0 → Z=0  [检测 Z sa1]
-向量2：A=0, B=1 → Z=0  [检测 A sa1, Z sa1]
-向量3：A=1, B=0 → Z=0  [检测 B sa1, Z sa1]
-向量4：A=1, B=1 → Z=1  [检测 A sa0, B sa0, Z sa0]
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **最小测试向量集**：
 
 分析哪些向量是必需的：
-```
-- 检测输入sa0：需要该输入为1且输出为1
-  → 必须有A=1,B=1
-  
-- 检测输入sa1：需要该输入为0且输出为0
-  → 必须有A=0,B=1或A=1,B=0（任选一个）
-  
-- 检测输出sa1：需要正常输出为0
-  → 可用A=0,B=0或A=0,B=1或A=1,B=0
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 最小向量集（3个向量）：
-```
-向量1：A=0, B=1 → Z=0  [检测 A sa1, Z sa1]
-向量2：A=1, B=0 → Z=0  [检测 B sa1, Z sa1]  
-向量3：A=1, B=1 → Z=1  [检测 A sa0, B sa0, Z sa0]
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **故障覆盖表**：
 
@@ -1462,44 +865,7 @@ B ──┘
 | V3   | 1 | 1 | 1     | ✓     | -     | ✓     | -     | ✓     | -     |
 
 **验证**：
-```python
-def verify_fault_coverage():
-    test_vectors = [(0,1), (1,0), (1,1)]
-    faults = ['A_sa0', 'A_sa1', 'B_sa0', 'B_sa1', 'Z_sa0', 'Z_sa1']
-    
-    def and_gate(a, b):
-        return a & b
-    
-    def faulty_circuit(a, b, fault):
-        if fault == 'A_sa0': a = 0
-        elif fault == 'A_sa1': a = 1
-        elif fault == 'B_sa0': b = 0
-        elif fault == 'B_sa1': b = 1
-        
-        z = and_gate(a, b)
-        
-        if fault == 'Z_sa0': z = 0
-        elif fault == 'Z_sa1': z = 1
-        
-        return z
-    
-    coverage = {}
-    for fault in faults:
-        detected = False
-        for a, b in test_vectors:
-            normal_output = and_gate(a, b)
-            faulty_output = faulty_circuit(a, b, fault)
-            if normal_output != faulty_output:
-                detected = True
-                break
-        coverage[fault] = detected
-    
-    return coverage
-
-# 结果：所有故障都被检测到
-print(verify_fault_coverage())
-# {'A_sa0': True, 'A_sa1': True, 'B_sa0': True, 'B_sa1': True, 'Z_sa0': True, 'Z_sa1': True}
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **通用结论**：
 - 与门的完整故障检测需要至少3个向量
@@ -1518,254 +884,58 @@ print(verify_fault_coverage())
 **1. 检测条件复杂性**
 
 固定故障检测：
-```
-条件简单：
-- 激活故障（设置故障点为指定值）
-- 传播到输出（使差异可观察）
-- 单个向量即可
-
-示例：检测线路L的sa0
-向量：设置L=1，传播路径为敏感
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障检测：
-```
-条件复杂：
-- 需要两个向量的序列（V1, V2）
-- V1：初始化，设置路径为稳定值
-- V2：启动转换，在时钟边沿检测
-- 还需考虑时序约束
-
-示例：检测路径P的慢速上升
-V1：设置路径输入为0（稳定）
-V2：设置路径输入为1，期望输出在时钟边沿前到达
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **2. 路径敏化问题**
 
 固定故障：
-```python
-def sensitize_path_for_SAF(circuit, fault_line):
-    """为固定故障敏化路径"""
-    # 只需要设置侧向输入为非控制值
-    # 相对简单，路径数量有限
-    
-    path = find_path_to_output(fault_line)
-    for gate in path:
-        set_side_inputs_non_controlling(gate)
-    return True  # 通常可以找到敏化路径
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障：
-```python
-def sensitize_path_for_delay(circuit, path, v1, v2):
-    """为延迟故障敏化路径"""
-    # 需要考虑：
-    # 1. 路径在V1下稳定
-    # 2. 路径在V2下敏化
-    # 3. 其他路径不能干扰
-    # 4. 时序窗口内只有目标路径切换
-    
-    # 检查V1稳定性
-    if not is_path_stable(circuit, path, v1):
-        return False
-    
-    # 检查V2敏化
-    if not is_path_sensitized(circuit, path, v1, v2):
-        return False
-    
-    # 检查竞争
-    competing_paths = find_competing_paths(circuit, path)
-    for cp in competing_paths:
-        if path_switches(circuit, cp, v1, v2):
-            return False  # 竞争路径干扰
-    
-    return True
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **3. 时序复杂性**
 
 固定故障（静态）：
-```
-特点：
-- 时间无关，逻辑级分析
-- 不需要考虑延迟
-- 任何时钟频率下都有效
-
-测试：
-- 慢速测试即可
-- 不需要精确时序
-- 功能级验证
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障（动态）：
-```
-复杂性：
-- 必须使用at-speed测试
-- 延迟值是模拟量，不是离散的
-- 工艺变化影响延迟分布
-- 温度、电压影响延迟
-
-挑战：
-- 测试设备时序精度要求高
-- 时钟偏斜影响测试结果
-- 建立/保持时间约束
-- jitter和噪声影响
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **4. 故障传播问题**
 
 固定故障传播：
-```
-传播机制：
-- 逻辑值差异传播
-- 确定性的逻辑运算
-- 可以通过多个门级联传播
-
-示例：
-门1输入差异 → 门1输出差异 → 门2输出差异 → ... → 主输出差异
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障传播：
-```python
-class DelayFaultPropagation:
-    def propagate_delay_fault(self, circuit, fault_path, delay_fault):
-        """延迟故障传播分析"""
-        
-        # 1. 时序窗口分析
-        nominal_delay = self.calculate_path_delay(circuit, fault_path)
-        fault_delay = nominal_delay + delay_fault.extra_delay
-        
-        # 2. 检查是否违反时序约束
-        clock_period = circuit.clock_period
-        setup_time = circuit.setup_time
-        
-        if fault_delay > (clock_period - setup_time):
-            return "TIMING_VIOLATION"  # 可检测
-        else:
-            return "NO_VIOLATION"     # 不可检测
-    
-    def analyze_delay_masking(self, circuit, fault_path):
-        """分析延迟掩盖效应"""
-        
-        # 逻辑掩盖：其他输入变化掩盖延迟效应
-        logic_masking = self.check_logic_masking(circuit, fault_path)
-        
-        # 时序掩盖：后续路径延迟掩盖故障
-        timing_masking = self.check_timing_masking(circuit, fault_path)
-        
-        # 电气掩盖：驱动能力掩盖小延迟
-        electrical_masking = self.check_electrical_masking(circuit, fault_path)
-        
-        return {
-            'logic': logic_masking,
-            'timing': timing_masking, 
-            'electrical': electrical_masking
-        }
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **5. 向量生成复杂度**
 
 固定故障ATPG：
-```
-算法复杂度：
-- D算法：O(2^n) 最坏情况
-- FAN算法：启发式，实践中高效
-- 可达性好，收敛快
-
-成功率：
-- 通常>95%的故障可生成向量
-- 算法成熟，工具可靠
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障ATPG：
-```python
-class DelayFaultATPG:
-    def generate_delay_vectors(self, circuit, delay_fault):
-        """延迟故障向量生成"""
-        
-        # 搜索空间更大：需要考虑向量对(V1,V2)
-        search_space = len(circuit.inputs) ** 4  # 比SAF大得多
-        
-        # 约束更多
-        constraints = [
-            self.stabilization_constraint(),  # V1稳定约束
-            self.sensitization_constraint(),  # 路径敏化约束
-            self.propagation_constraint(),    # 传播约束
-            self.timing_constraint()          # 时序约束
-        ]
-        
-        # 成功率更低
-        generation_success_rate = 0.7  # 低于SAF的0.95
-        
-        return self.constraint_solve(search_space, constraints)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **6. 测试成本**
 
 固定故障测试：
-```
-成本因素：
-- 低速测试设备即可
-- 测试时间较短
-- 向量数量相对较少
-- 一次性测试
-
-典型成本：基准1x
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障测试：
-```
-成本因素：
-- 需要高速测试设备（昂贵）
-- at-speed时钟生成复杂
-- 向量对比单向量多
-- 可能需要多个频率测试
-- 温度/电压变化测试
-
-典型成本：5-10x基准成本
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **7. 诊断复杂性**
 
 固定故障诊断：
-```python
-def diagnose_SAF(failing_vectors, fault_dictionary):
-    """固定故障诊断相对简单"""
-    suspects = []
-    
-    for fault in fault_dictionary:
-        if fault.response_matches(failing_vectors):
-            suspects.append(fault)
-    
-    # 通常可以精确定位到几个候选故障
-    return suspects
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 延迟故障诊断：
-```python
-def diagnose_delay_fault(timing_failures, process_variations):
-    """延迟故障诊断复杂"""
-    
-    # 1. 区分真实故障vs工艺变化
-    real_faults = []
-    process_outliers = []
-    
-    for failure in timing_failures:
-        if failure.delay_amount > process_variations.threshold:
-            real_faults.append(failure)
-        else:
-            process_outliers.append(failure)
-    
-    # 2. 多个路径可能共享同一个慢门
-    # 需要路径交集分析
-    common_gates = self.find_common_elements(real_faults)
-    
-    # 3. 考虑时序相关性
-    # 一个门的延迟可能影响多条路径
-    
-    return self.correlate_timing_failures(common_gates)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **结论**：
 
@@ -1823,21 +993,7 @@ def diagnose_delay_fault(timing_failures, process_variations):
 4. **一致性检查**：验证赋值无矛盾
 
 **D传播规则**：
-```
-AND门：
-1 · D = D
-0 · D = 0
-X · D = X
-
-OR门：
-0 + D = D  
-1 + D = 1
-X + D = X
-
-NOT门：
-¬D = D̄
-¬D̄ = D
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.5.3 FAN算法
 
@@ -1864,15 +1020,7 @@ NOT门：
    - 加速收敛
 
 **FAN算法流程**：
-```
-1. 初始化：设置故障激活目标
-2. 目标选择：选择当前最重要的目标
-3. 回溯点选择：选择最有希望的回溯点
-4. 赋值决策：进行局部赋值
-5. 蕴含操作：传播赋值的影响
-6. 检查矛盾：验证一致性
-7. 重复或回溯：直到找到解或证明无解
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.5.4 基于SAT的ATPG
 
@@ -1884,35 +1032,13 @@ NOT门：
 **编码方法**：
 
 1. **电路结构编码**：
-```
-对每个门g：
-输入：x1, x2, ..., xn
-输出：y
-
-AND门：y ↔ (x1 ∧ x2 ∧ ... ∧ xn)
-OR门：y ↔ (x1 ∨ x2 ∨ ... ∨ xn)  
-NOT门：y ↔ ¬x1
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 2. **故障效应编码**：
-```
-对于线路L的sa0故障：
-引入故障变量Lf
-约束：Lf = 0
-
-正常输出：On
-故障输出：Of
-检测条件：On ≠ Of
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 3. **时间帧展开**：
-```
-对于时序电路：
-时间帧0：初始状态和输入
-时间帧1：时钟后的状态
-...
-直到故障效应传播到输出
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 12.5.5 压缩测试
 
@@ -1939,13 +1065,7 @@ NOT门：y ↔ ¬x1
    - X-tolerant压缩
 
 **压缩比计算**：
-```
-压缩比 = 原始数据量 / 压缩后数据量
-
-典型值：
-测试向量：50:1 - 100:1
-测试响应：1000:1 - 10000:1
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 ### 练习 12.5
 
@@ -1957,15 +1077,7 @@ NOT门：y ↔ ¬x1
 D算法测试向量生成示例：
 
 **目标电路**：
-```
-       A ──┐
-           ├── G1(AND) ── E ──┐
-       B ──┘                 │
-                             ├── G3(OR) ── Z
-       C ──┐                 │
-           ├── G2(AND) ── F ──┘
-       D ──┘
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 逻辑表达式：Z = (A·B) + (C·D) = E + F
 
@@ -2005,22 +1117,7 @@ D算法测试向量生成示例：
 - 检测成功！
 
 **最终测试向量**：
-```
-A=1, B=1, C=0, D=0 (选择D=0)
-
-验证：
-正常电路：
-- E = A·B = 1·1 = 1
-- F = C·D = 0·0 = 0
-- Z = E + F = 1 + 0 = 1
-
-故障电路(E sa0)：
-- E = 0 (固定)
-- F = C·D = 0·0 = 0
-- Z = E + F = 0 + 0 = 0
-
-输出差异：1 ≠ 0，故障被检测到
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **D算法详细追踪表**：
 
@@ -2033,14 +1130,7 @@ A=1, B=1, C=0, D=0 (选择D=0)
 | 4 | 计算输出 | 1 | 1 | 0 | 0 | D | 0 | D | D传播到输出 |
 
 **其他可能的解**：
-```
-由于D可以是任意值，其他有效解包括：
-- A=1, B=1, C=0, D=1
-- A=1, B=1, C=1, D=0  
-- A=1, B=1, C=X, D=0（如果允许C未定义）
-
-但最简单的解是：A=1, B=1, C=0, D=0
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **算法特点总结**：
 1. **系统性**：D算法提供了系统化的搜索方法
@@ -2051,13 +1141,7 @@ A=1, B=1, C=0, D=0 (选择D=0)
 **扩展：检测其他故障**：
 
 对于F线路sa1故障：
-```
-故障激活：C=1, D=1 使F=1，故障后F=1，无差异
-需要F=0，故障后F=1，表示为F=D̄
-激活条件：C=0或D=0，使F=0
-传播条件：E=0确保F的影响传播
-测试向量：A=0, B=X, C=1, D=1
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 这个例子展示了D算法的核心思想：故障激活→差异传播→一致性求解。
 </details>
@@ -2072,245 +1156,49 @@ A=1, B=1, C=0, D=0 (选择D=0)
 **1. 算法基础**
 
 传统ATPG（D算法/FAN）：
-```
-基础：专用搜索算法
-特点：
-- 直接在电路图上操作
-- 使用领域特定启发式
-- 深度优先搜索 + 回溯
-- 手工优化的数据结构
-
-优势：
-- 针对硬件电路优化
-- 启发式高效
-- 内存使用可控
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 SAT-based ATPG：
-```
-基础：布尔可满足性求解
-特点：
-- 将问题转化为CNF
-- 使用通用SAT求解器
-- 冲突驱动的学习
-- 现代SAT算法优化
-
-优势：
-- 算法持续改进
-- 处理复杂约束能力强
-- 自动学习和优化
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **2. 问题建模方式**
 
 传统方法：
-```python
-class TraditionalATPG:
-    def __init__(self, circuit, fault):
-        self.circuit = circuit
-        self.fault = fault
-        self.assignment = {}
-        
-    def solve(self):
-        # 直接在电路上搜索
-        self.activate_fault()
-        self.propagate_fault_effect()
-        self.justify_assignments()
-        return self.assignment
-    
-    def activate_fault(self):
-        """在故障位置产生差异"""
-        fault_line = self.fault.line
-        if self.fault.type == 'sa0':
-            self.set_value(fault_line, 1)  # 激活sa0
-        else:
-            self.set_value(fault_line, 0)  # 激活sa1
-    
-    def propagate_fault_effect(self):
-        """将差异传播到输出"""
-        for gate in self.get_propagation_path():
-            self.sensitize_gate(gate)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 SAT方法：
-```python
-class SATBasedATPG:
-    def __init__(self, circuit, fault):
-        self.circuit = circuit
-        self.fault = fault
-        self.cnf = CNF()
-        
-    def solve(self):
-        # 构建SAT实例
-        self.encode_circuit()
-        self.encode_fault()
-        self.encode_detection_condition()
-        
-        # 调用SAT求解器
-        result = self.sat_solver.solve(self.cnf)
-        return self.extract_test_vector(result)
-    
-    def encode_circuit(self):
-        """将电路编码为CNF"""
-        for gate in self.circuit.gates:
-            if gate.type == 'AND':
-                self.encode_and_gate(gate)
-            elif gate.type == 'OR':
-                self.encode_or_gate(gate)
-    
-    def encode_and_gate(self, gate):
-        """AND门的CNF编码"""
-        inputs = gate.inputs
-        output = gate.output
-        
-        # output -> (input1 & input2 & ...)
-        # 等价于：¬output ∨ (input1 ∧ input2 ∧ ...)
-        # CNF形式：(¬output ∨ input1) ∧ (¬output ∨ input2) ∧ ...
-        for inp in inputs:
-            self.cnf.add_clause([-output, inp])
-            
-        # (input1 & input2 & ...) -> output  
-        # 等价于：¬(input1 ∧ input2 ∧ ...) ∨ output
-        # CNF形式：(¬input1 ∨ ¬input2 ∨ ... ∨ output)
-        clause = [-inp for inp in inputs] + [output]
-        self.cnf.add_clause(clause)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **3. 处理复杂性能力对比**
 
 传统ATPG局限性：
-```
-1. 复杂约束处理困难：
-   - 时序约束
-   - 功耗约束
-   - X值处理
-   
-2. 扩展性问题：
-   - 启发式难以泛化
-   - 新的电路结构需要新启发式
-   - 维护成本高
-
-3. 优化目标单一：
-   - 主要关注故障检测
-   - 难以同时优化多个目标
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 SAT-based优势：
-```python
-class AdvancedSATATPG:
-    def multi_objective_optimization(self):
-        """多目标优化"""
-        # 同时优化：故障覆盖、向量数量、功耗
-        for objective in ['coverage', 'vectors', 'power']:
-            self.add_objective_constraints(objective)
-    
-    def handle_timing_constraints(self):
-        """处理时序约束"""
-        # 添加时序相关的CNF子句
-        for path in self.circuit.critical_paths:
-            self.add_timing_clauses(path)
-    
-    def x_value_handling(self):
-        """X值处理"""
-        # 通过约束消除X值的影响
-        for unknown_line in self.x_lines:
-            self.add_x_masking_constraints(unknown_line)
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **4. 性能比较**
 
 运行时间：
-```
-电路规模        传统ATPG    SAT-based
-小规模(<1K门)      快          慢
-中规模(1K-10K)     中等        中等  
-大规模(>10K)       慢/失败      快
-复杂约束           失败        适中
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 内存使用：
-```
-传统ATPG：
-- 电路表示：紧凑
-- 搜索状态：较少
-- 总体：低内存
-
-SAT-based：
-- CNF表示：冗余较多
-- 学习子句：增长
-- 总体：高内存
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **5. 实际应用对比**
 
 工业应用统计：
-```
-方法           市场份额    应用场景
-传统ATPG        60%       成熟电路、快速测试
-SAT-based      30%       复杂电路、研究
-混合方法        10%       高端应用
-
-趋势：SAT-based份额逐年增加
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **6. 混合方案**
 
 现代商业工具通常采用混合策略：
-```python
-class HybridATPG:
-    def __init__(self, circuit, faults):
-        self.circuit = circuit
-        self.faults = faults
-        
-    def solve(self):
-        results = {}
-        
-        # 第一阶段：传统算法处理简单故障
-        simple_faults = self.classify_simple_faults()
-        for fault in simple_faults:
-            if self.time_budget_remaining() > threshold:
-                result = self.traditional_solve(fault)
-                results[fault] = result
-            else:
-                break
-        
-        # 第二阶段：SAT处理剩余困难故障
-        remaining_faults = set(self.faults) - set(results.keys())
-        for fault in remaining_faults:
-            result = self.sat_solve(fault)
-            results[fault] = result
-            
-        return results
-    
-    def classify_simple_faults(self):
-        """识别适合传统方法的故障"""
-        simple = []
-        for fault in self.faults:
-            if (self.get_fault_depth(fault) < 10 and
-                self.get_fanout_cone_size(fault) < 100):
-                simple.append(fault)
-        return simple
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **7. 未来发展趋势**
 
 技术融合：
-```
-1. 机器学习增强：
-   - 学习最优启发式
-   - 预测SAT求解难度
-   - 智能算法选择
-
-2. 并行化：
-   - GPU加速SAT求解
-   - 分布式ATPG
-   - 故障并行处理
-
-3. 近似算法：
-   - 快速近似解
-   - 渐进精化
-   - 实时约束满足
-```
+**[扫描设计架构：通过扫描触发器构建测试访问机制，实现100%的寄存器状态可控制性和可观察性]**
 
 **选择建议**：
 
