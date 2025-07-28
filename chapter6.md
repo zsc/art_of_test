@@ -18,7 +18,28 @@
 5. **情境（Context）**：影响旅程的环境因素
 
 **旅程地图示例**：
-**[用户旅程映射：通过用户故事、触点分析和路径可视化，构建完整的端到端业务流程测试场景]**
+
+想象一个电商平台的用户旅程地图，它不仅仅是一个流程图，而是一个多维度的体验地图：
+
+```
+时间轴 ────────────────────────────────────────────────────────>
+         发现     选择      购买      等待      收货      使用
+
+情感曲线：
+高 ┐    ╱╲                ╱╲                    ╱╲
+   │   ╱  ╲              ╱  ╲                  ╱  ╲
+中 ├──╯    ╲    ╱╲      ╱    ╲      ╱╲      ╱    ╲───
+   │        ╲  ╱  ╲    ╱      ╲    ╱  ╲    ╱
+低 ┘         ╲╱    ╲──╱        ╲──╱    ╲──╱
+
+触点：  搜索引擎  商品页   购物车   支付页   物流查询   产品使用
+        社交媒体  评价区   客服     订单页   客服支持   社区论坛
+```
+
+这个地图帮助我们识别：
+- **高峰时刻**：首次找到心仪商品、成功下单、收到包裹
+- **痛点时刻**：价格比较困难、支付失败、物流延迟
+- **关键决策点**：是否信任平台、选择哪个商品、是否完成支付
 
 ### 6.1.2 关键用户旅程识别
 
@@ -159,7 +180,31 @@
 
 **1. 识别可重用组件**
 
-**[用户旅程映射：通过用户故事、触点分析和路径可视化，构建完整的端到端业务流程测试场景]**
+以在线教育平台为例，可重用组件包括：
+
+```
+基础组件：
+├── 认证模块
+│   ├── 登录（邮箱/手机/社交媒体）
+│   ├── 注册（个人/企业）
+│   ├── 密码重置
+│   └── 会话管理
+├── 搜索模块
+│   ├── 关键词搜索
+│   ├── 筛选器（价格/难度/时长）
+│   ├── 排序（相关性/评分/价格）
+│   └── 搜索历史
+├── 支付模块
+│   ├── 购物车管理
+│   ├── 优惠码应用
+│   ├── 支付方式选择
+│   └── 订单确认
+└── 学习模块
+    ├── 视频播放器
+    ├── 进度追踪
+    ├── 笔记功能
+    └── 测验系统
+```
 
 **2. 业务流程抽象**
 
@@ -291,25 +336,597 @@
 **[页面对象模型：通过封装页面元素和操作的面向对象设计模式，实现测试代码的可维护性和重用性]**
 
 **2. 组件定义**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+# 可重用的组件类
+class HeaderComponent:
+    def __init__(self, driver):
+        self.driver = driver
+        self.search_box = (By.ID, "search-input")
+        self.search_button = (By.ID, "search-btn")
+        self.cart_icon = (By.CLASS_NAME, "cart-icon")
+        self.cart_count = (By.CLASS_NAME, "cart-count")
+        
+    def search(self, keyword):
+        search_input = self.driver.find_element(*self.search_box)
+        search_input.clear()
+        search_input.send_keys(keyword)
+        self.driver.find_element(*self.search_button).click()
+        
+    def get_cart_count(self):
+        try:
+            return int(self.driver.find_element(*self.cart_count).text)
+        except:
+            return 0
+            
+    def go_to_cart(self):
+        self.driver.find_element(*self.cart_icon).click()
+        return CartPage(self.driver)
+
+class PriceFilterComponent:
+    def __init__(self, driver):
+        self.driver = driver
+        self.min_price = (By.ID, "min-price")
+        self.max_price = (By.ID, "max-price")
+        self.apply_button = (By.ID, "apply-price-filter")
+        
+    def set_price_range(self, min_val, max_val):
+        self.driver.find_element(*self.min_price).clear()
+        self.driver.find_element(*self.min_price).send_keys(str(min_val))
+        self.driver.find_element(*self.max_price).clear()
+        self.driver.find_element(*self.max_price).send_keys(str(max_val))
+        self.driver.find_element(*self.apply_button).click()
+```
 
 **3. 搜索结果页面**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class SearchResultsPage(BasePage):
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.header = HeaderComponent(driver)
+        self.filters = PriceFilterComponent(driver)
+        
+    # 元素定位器
+    @property
+    def result_items(self):
+        return (By.CLASS_NAME, "search-result-item")
+    
+    @property
+    def no_results_message(self):
+        return (By.CLASS_NAME, "no-results")
+    
+    @property
+    def sort_dropdown(self):
+        return (By.ID, "sort-options")
+    
+    # 业务方法
+    def get_result_count(self):
+        results = self.driver.find_elements(*self.result_items)
+        return len(results)
+    
+    def has_results(self):
+        return self.get_result_count() > 0
+    
+    def get_product_names(self):
+        results = self.driver.find_elements(*self.result_items)
+        return [item.find_element(By.CLASS_NAME, "product-name").text 
+                for item in results]
+    
+    def get_product_prices(self):
+        results = self.driver.find_elements(*self.result_items)
+        prices = []
+        for item in results:
+            price_text = item.find_element(By.CLASS_NAME, "price").text
+            price = float(price_text.replace("$", "").replace(",", ""))
+            prices.append(price)
+        return prices
+    
+    def click_product(self, index=0):
+        results = self.driver.find_elements(*self.result_items)
+        if index < len(results):
+            results[index].find_element(By.TAG_NAME, "a").click()
+            return ProductDetailsPage(self.driver)
+        raise IndexError(f"Product at index {index} not found")
+    
+    def sort_by(self, option):
+        from selenium.webdriver.support.select import Select
+        select = Select(self.driver.find_element(*self.sort_dropdown))
+        select.select_by_visible_text(option)
+        # 等待结果刷新
+        WebDriverWait(self.driver, 10).until(
+            EC.staleness_of(self.driver.find_element(*self.result_items))
+        )
+    
+    def filter_by_price(self, min_price, max_price):
+        self.filters.set_price_range(min_price, max_price)
+        # 等待结果更新
+        time.sleep(1)  # 或使用更智能的等待
+```
 
 **4. 商品卡片组件**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class ProductCard:
+    """封装单个商品卡片的所有操作"""
+    
+    def __init__(self, driver, web_element):
+        self.driver = driver
+        self.root_element = web_element
+    
+    def get_name(self):
+        return self.root_element.find_element(By.CLASS_NAME, "product-name").text
+    
+    def get_price(self):
+        price_text = self.root_element.find_element(By.CLASS_NAME, "price").text
+        return float(price_text.replace("$", "").replace(",", ""))
+    
+    def get_rating(self):
+        stars = self.root_element.find_elements(By.CLASS_NAME, "star-filled")
+        return len(stars)
+    
+    def get_stock_status(self):
+        try:
+            stock_element = self.root_element.find_element(By.CLASS_NAME, "stock-status")
+            return stock_element.text
+        except NoSuchElementException:
+            return "Unknown"
+    
+    def is_on_sale(self):
+        sale_badges = self.root_element.find_elements(By.CLASS_NAME, "sale-badge")
+        return len(sale_badges) > 0
+    
+    def get_discount_percentage(self):
+        if self.is_on_sale():
+            discount_text = self.root_element.find_element(By.CLASS_NAME, "discount").text
+            return int(discount_text.replace("%", "").replace("-", ""))
+        return 0
+    
+    def add_to_cart(self):
+        add_button = self.root_element.find_element(By.CLASS_NAME, "add-to-cart")
+        add_button.click()
+        # 等待添加成功的反馈
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.CLASS_NAME, "added-to-cart-message"))
+        )
+    
+    def click_quick_view(self):
+        quick_view = self.root_element.find_element(By.CLASS_NAME, "quick-view")
+        # 悬停显示快速预览按钮
+        ActionChains(self.driver).move_to_element(self.root_element).perform()
+        WebDriverWait(self.driver, 3).until(
+            EC.element_to_be_clickable(quick_view)
+        )
+        quick_view.click()
+    
+    def navigate_to_details(self):
+        link = self.root_element.find_element(By.TAG_NAME, "a")
+        link.click()
+        return ProductDetailsPage(self.driver)
+
+# 在页面中使用组件
+class ProductListingPage(BasePage):
+    def get_product_cards(self):
+        card_elements = self.driver.find_elements(By.CLASS_NAME, "product-card")
+        return [ProductCard(self.driver, element) for element in card_elements]
+    
+    def find_products_on_sale(self):
+        cards = self.get_product_cards()
+        return [card for card in cards if card.is_on_sale()]
+    
+    def find_products_in_stock(self):
+        cards = self.get_product_cards()
+        return [card for card in cards if card.get_stock_status() == "In Stock"]
+```
 
 **5. 商品详情页面**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class ProductDetailsPage(BasePage):
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.wait_for_page_load()
+    
+    def wait_for_page_load(self):
+        # 等待关键元素加载
+        self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "product-info")))
+    
+    # 复杂元素的属性访问
+    @property
+    def product_title(self):
+        return self.get_text((By.TAG_NAME, "h1"))
+    
+    @property
+    def current_price(self):
+        price_text = self.get_text((By.CLASS_NAME, "current-price"))
+        return float(price_text.replace("$", "").replace(",", ""))
+    
+    @property
+    def images(self):
+        return self.find_elements((By.CSS_SELECTOR, ".product-images img"))
+    
+    # 选项选择
+    def select_size(self, size):
+        size_selector = self.find_element((By.ID, "size-selector"))
+        size_options = size_selector.find_elements(By.TAG_NAME, "button")
+        
+        for option in size_options:
+            if option.text == size:
+                option.click()
+                return True
+        
+        raise ValueError(f"Size '{size}' not available")
+    
+    def select_color(self, color):
+        color_swatches = self.find_elements((By.CLASS_NAME, "color-swatch"))
+        
+        for swatch in color_swatches:
+            if swatch.get_attribute("data-color") == color:
+                swatch.click()
+                # 等待图片更新
+                self.wait.until(
+                    EC.staleness_of(self.images[0])
+                )
+                return True
+        
+        raise ValueError(f"Color '{color}' not available")
+    
+    def set_quantity(self, quantity):
+        qty_input = self.find_element((By.ID, "quantity"))
+        qty_input.clear()
+        qty_input.send_keys(str(quantity))
+    
+    def add_to_cart(self):
+        # 检查是否所有必选项都已选择
+        add_button = self.find_element((By.ID, "add-to-cart"))
+        
+        if not add_button.is_enabled():
+            # 检查哪些选项未选择
+            errors = self.find_elements((By.CLASS_NAME, "selection-error"))
+            if errors:
+                raise Exception(f"Please select: {', '.join([e.text for e in errors])}")
+        
+        add_button.click()
+        
+        # 等待添加成功通知
+        self.wait.until(
+            EC.visibility_of_element_located((By.CLASS_NAME, "cart-notification"))
+        )
+    
+    def get_product_info(self):
+        """获取完整的产品信息"""
+        return {
+            'title': self.product_title,
+            'price': self.current_price,
+            'description': self.get_text((By.CLASS_NAME, "product-description")),
+            'sku': self.get_text((By.CLASS_NAME, "sku")),
+            'availability': self.get_text((By.CLASS_NAME, "availability")),
+            'rating': self.get_product_rating(),
+            'reviews_count': self.get_reviews_count()
+        }
+    
+    def get_product_rating(self):
+        rating_element = self.find_element((By.CLASS_NAME, "rating"))
+        return float(rating_element.get_attribute("data-rating"))
+    
+    def get_reviews_count(self):
+        reviews_text = self.get_text((By.CLASS_NAME, "reviews-count"))
+        import re
+        match = re.search(r'\d+', reviews_text)
+        return int(match.group()) if match else 0
+    
+    # 交互功能
+    def zoom_image(self, image_index=0):
+        images = self.images
+        if image_index < len(images):
+            ActionChains(self.driver).move_to_element(images[image_index]).perform()
+            # 等待放大镜出现
+            self.wait.until(
+                EC.visibility_of_element_located((By.CLASS_NAME, "zoom-lens"))
+            )
+    
+    def switch_image(self, index):
+        thumbnails = self.find_elements((By.CLASS_NAME, "thumbnail"))
+        if index < len(thumbnails):
+            thumbnails[index].click()
+            # 等待主图更新
+            time.sleep(0.5)
+```
 
 **6. 购物车页面**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class CartPage(BasePage):
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.wait_for_cart_load()
+    
+    def wait_for_cart_load(self):
+        # 等待购物车内容加载
+        self.wait.until(
+            EC.presence_of_element_located((By.CLASS_NAME, "cart-content"))
+        )
+    
+    def get_cart_items(self):
+        """获取购物车中所有商品"""
+        item_elements = self.find_elements((By.CLASS_NAME, "cart-item"))
+        return [CartItem(self.driver, element) for element in item_elements]
+    
+    def is_empty(self):
+        return len(self.get_cart_items()) == 0
+    
+    def get_item_by_name(self, product_name):
+        items = self.get_cart_items()
+        for item in items:
+            if product_name.lower() in item.get_name().lower():
+                return item
+        return None
+    
+    def update_quantity(self, product_name, new_quantity):
+        item = self.get_item_by_name(product_name)
+        if item:
+            item.update_quantity(new_quantity)
+            self.wait_for_price_update()
+        else:
+            raise ValueError(f"Product '{product_name}' not found in cart")
+    
+    def remove_item(self, product_name):
+        item = self.get_item_by_name(product_name)
+        if item:
+            item.remove()
+            self.wait_for_cart_update()
+        else:
+            raise ValueError(f"Product '{product_name}' not found in cart")
+    
+    def clear_cart(self):
+        """清空购物车"""
+        items = self.get_cart_items()
+        for item in items:
+            item.remove()
+            time.sleep(0.5)  # 避免过快操作
+    
+    def get_subtotal(self):
+        subtotal_text = self.get_text((By.CLASS_NAME, "subtotal"))
+        return float(subtotal_text.replace("$", "").replace(",", ""))
+    
+    def get_tax(self):
+        tax_text = self.get_text((By.CLASS_NAME, "tax"))
+        return float(tax_text.replace("$", "").replace(",", ""))
+    
+    def get_shipping(self):
+        shipping_text = self.get_text((By.CLASS_NAME, "shipping"))
+        if "free" in shipping_text.lower():
+            return 0.0
+        return float(shipping_text.replace("$", "").replace(",", ""))
+    
+    def get_total(self):
+        total_text = self.get_text((By.CLASS_NAME, "total-price"))
+        return float(total_text.replace("$", "").replace(",", ""))
+    
+    def apply_coupon(self, coupon_code):
+        coupon_input = self.find_element((By.ID, "coupon-code"))
+        coupon_input.clear()
+        coupon_input.send_keys(coupon_code)
+        
+        apply_button = self.find_element((By.ID, "apply-coupon"))
+        apply_button.click()
+        
+        # 等待优惠码应用结果
+        self.wait.until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, ".coupon-success, .coupon-error")
+            )
+        )
+        
+        # 检查是否成功
+        if self.is_element_present((By.CLASS_NAME, "coupon-success")):
+            self.wait_for_price_update()
+            return True
+        else:
+            error_msg = self.get_text((By.CLASS_NAME, "coupon-error"))
+            raise ValueError(f"Coupon application failed: {error_msg}")
+    
+    def proceed_to_checkout(self):
+        checkout_button = self.find_element((By.ID, "proceed-to-checkout"))
+        
+        # 检查按钮是否可用
+        if not checkout_button.is_enabled():
+            if self.is_empty():
+                raise Exception("Cannot checkout with empty cart")
+            else:
+                raise Exception("Checkout is not available")
+        
+        checkout_button.click()
+        return CheckoutPage(self.driver)
+    
+    def wait_for_price_update(self):
+        """等待价格更新完成"""
+        old_total = self.get_total()
+        self.wait.until(
+            lambda driver: self.get_total() != old_total or 
+            self.is_element_present((By.CLASS_NAME, "price-updating")) == False
+        )
+    
+    def wait_for_cart_update(self):
+        """等待购物车更新"""
+        self.wait.until(
+            EC.invisibility_of_element_located((By.CLASS_NAME, "cart-updating"))
+        )
+```
 
 **7. 购物车项目组件**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class CartItem:
+    """封装购物车中单个商品的操作"""
+    
+    def __init__(self, driver, element):
+        self.driver = driver
+        self.element = element
+    
+    def get_name(self):
+        return self.element.find_element(By.CLASS_NAME, "item-name").text
+    
+    def get_price(self):
+        price_text = self.element.find_element(By.CLASS_NAME, "item-price").text
+        return float(price_text.replace("$", "").replace(",", ""))
+    
+    def get_quantity(self):
+        qty_input = self.element.find_element(By.CLASS_NAME, "quantity-input")
+        return int(qty_input.get_attribute("value"))
+    
+    def get_subtotal(self):
+        subtotal_text = self.element.find_element(By.CLASS_NAME, "item-subtotal").text
+        return float(subtotal_text.replace("$", "").replace(",", ""))
+    
+    def update_quantity(self, new_quantity):
+        qty_input = self.element.find_element(By.CLASS_NAME, "quantity-input")
+        qty_input.clear()
+        qty_input.send_keys(str(new_quantity))
+        qty_input.send_keys(Keys.ENTER)
+        
+        # 等待更新完成
+        WebDriverWait(self.driver, 5).until(
+            lambda d: self.get_quantity() == new_quantity
+        )
+    
+    def increment_quantity(self):
+        plus_button = self.element.find_element(By.CLASS_NAME, "qty-plus")
+        plus_button.click()
+    
+    def decrement_quantity(self):
+        minus_button = self.element.find_element(By.CLASS_NAME, "qty-minus")
+        current_qty = self.get_quantity()
+        if current_qty > 1:
+            minus_button.click()
+    
+    def remove(self):
+        remove_button = self.element.find_element(By.CLASS_NAME, "remove-item")
+        remove_button.click()
+        
+        # 确认删除（如果有弹窗）
+        try:
+            confirm_button = WebDriverWait(self.driver, 2).until(
+                EC.element_to_be_clickable((By.CLASS_NAME, "confirm-remove"))
+            )
+            confirm_button.click()
+        except TimeoutException:
+            pass  # 没有确认弹窗
+        
+        # 等待元素消失
+        WebDriverWait(self.driver, 5).until(
+            EC.staleness_of(self.element)
+        )
+    
+    def get_attributes(self):
+        """获取商品属性（如颜色、尺寸）"""
+        attributes = {}
+        attr_elements = self.element.find_elements(By.CLASS_NAME, "item-attribute")
+        
+        for attr in attr_elements:
+            label = attr.find_element(By.CLASS_NAME, "attr-label").text
+            value = attr.find_element(By.CLASS_NAME, "attr-value").text
+            attributes[label.rstrip(":")] = value
+        
+        return attributes
+    
+    def is_out_of_stock(self):
+        """检查商品是否缺货"""
+        return len(self.element.find_elements(By.CLASS_NAME, "out-of-stock-badge")) > 0
+    
+    def has_warning(self):
+        """检查是否有警告信息"""
+        warnings = self.element.find_elements(By.CLASS_NAME, "item-warning")
+        return len(warnings) > 0
+    
+    def get_warning_message(self):
+        if self.has_warning():
+            return self.element.find_element(By.CLASS_NAME, "item-warning").text
+        return None
+```
 
 **8. 工厂类**
-**[端到端测试工程：从用户视角出发的全栈测试方法，涵盖用户旅程、技术架构和质量保障的完整实践]**
+
+```python
+class PageFactory:
+    """页面对象工厂，管理所有页面的创建和初始化"""
+    
+    # 页面注册表
+    _pages = {
+        'home': HomePage,
+        'login': LoginPage,
+        'search': SearchResultsPage,
+        'product': ProductDetailsPage,
+        'cart': CartPage,
+        'checkout': CheckoutPage,
+        'order_confirmation': OrderConfirmationPage
+    }
+    
+    def __init__(self, driver):
+        self.driver = driver
+        self._page_cache = {}
+    
+    def get_page(self, page_name):
+        """获取页面实例，使用缓存避免重复创建"""
+        if page_name not in self._pages:
+            raise ValueError(f"Page '{page_name}' not registered")
+        
+        if page_name not in self._page_cache:
+            page_class = self._pages[page_name]
+            self._page_cache[page_name] = page_class(self.driver)
+        
+        return self._page_cache[page_name]
+    
+    def register_page(self, name, page_class):
+        """动态注册新页面"""
+        self._pages[name] = page_class
+    
+    def create_page(self, page_class):
+        """直接创建页面实例"""
+        return page_class(self.driver)
+    
+    def clear_cache(self):
+        """清空页面缓存"""
+        self._page_cache.clear()
+
+# 测试基类使用工厂
+class BaseTest:
+    def setup_method(self):
+        self.driver = webdriver.Chrome()
+        self.page_factory = PageFactory(self.driver)
+        self.driver.maximize_window()
+    
+    def teardown_method(self):
+        self.driver.quit()
+    
+    def get_page(self, page_name):
+        return self.page_factory.get_page(page_name)
+
+# 测试示例
+class TestShoppingFlow(BaseTest):
+    def test_complete_purchase(self):
+        # 使用工厂获取页面
+        home = self.get_page('home')
+        home.search("laptop")
+        
+        search = self.get_page('search')
+        search.click_product(0)
+        
+        product = self.get_page('product')
+        product.add_to_cart()
+        
+        cart = self.get_page('cart')
+        cart.apply_coupon("SAVE10")
+        cart.proceed_to_checkout()
+        
+        checkout = self.get_page('checkout')
+        checkout.fill_shipping_info(test_data.shipping_info)
+        checkout.select_payment_method("credit_card")
+        checkout.fill_payment_info(test_data.payment_info)
+        confirmation = checkout.place_order()
+        
+        assert confirmation.get_order_number() is not None
+```
 
 这个设计展示了：
 - 清晰的页面和组件分离

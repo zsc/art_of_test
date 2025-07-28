@@ -4,74 +4,268 @@
 
 ## 19.1 并发缺陷的本质
 
+并发编程引入了时间维度的不确定性，使得程序行为变得难以预测。理解并发缺陷的本质是设计有效测试策略的基础。并发缺陷不仅难以发现，更难以重现和调试，这使得系统化的测试方法变得尤为重要。
+
 ### 19.1.1 并发缺陷分类
 
+并发缺陷可以从多个维度进行分类，每种类型都有其特定的表现形式和检测方法。
+
 1. **竞态条件（Race Condition）**
-   - 数据竞争：多个线程同时访问共享数据
-   - 顺序违反：操作顺序依赖被破坏
-   - 原子性违反：应该原子执行的操作被中断
+   
+   竞态条件是最常见的并发缺陷，发生在程序的正确性依赖于多个线程执行的相对时序时。主要包括：
+   
+   - **数据竞争（Data Race）**：多个线程同时访问共享数据，且至少有一个是写操作，没有适当的同步机制保护。数据竞争可能导致内存损坏、计算错误或程序崩溃。
+   
+   - **顺序违反（Order Violation）**：程序假设某些操作会按特定顺序执行，但并发执行破坏了这种假设。例如，一个线程假设另一个线程已经完成初始化，但实际上初始化可能尚未完成。
+   
+   - **原子性违反（Atomicity Violation）**：一组操作在逻辑上应该原子执行（要么全部完成，要么全部不执行），但在并发环境下被其他线程的操作打断。典型例子是check-then-act模式，如先检查条件再执行操作。
 
 2. **死锁（Deadlock）**
-   - 循环等待资源
-   - 持有并等待
-   - 不可剥夺
-   - 互斥访问
+   
+   死锁发生在一组线程相互等待对方持有的资源，导致所有线程都无法继续执行。死锁的四个必要条件（Coffman条件）：
+   
+   - **互斥访问（Mutual Exclusion）**：资源不能被多个线程同时使用
+   - **持有并等待（Hold and Wait）**：线程持有至少一个资源，同时等待获取其他资源
+   - **不可剥夺（No Preemption）**：资源只能由持有者主动释放，不能被强制剥夺
+   - **循环等待（Circular Wait）**：存在一个线程的循环链，每个线程都在等待下一个线程持有的资源
+   
+   理解这些条件对于设计死锁预防和检测策略至关重要。
 
 3. **活锁（Livelock）**
-   - 线程持续活动但无进展
-   - 过度礼让导致的问题
+   
+   活锁是一种特殊的并发问题，线程并未被阻塞，但由于不断地响应其他线程的动作而无法取得进展。常见场景包括：
+   
+   - **过度礼让**：两个线程都试图避让对方，结果都无法前进，类似两个人在走廊相遇时不断左右避让
+   - **重试风暴**：大量线程同时重试失败的操作，导致系统过载，所有重试都继续失败
+   - **优先级反转处理不当**：高优先级线程不断让步给低优先级线程
 
 4. **饥饿（Starvation）**
-   - 某些线程长期得不到资源
-   - 不公平的调度策略
+   
+   饥饿发生在某些线程长期无法获得所需资源或执行机会。可能的原因包括：
+   
+   - **不公平的调度策略**：某些线程总是被优先考虑，其他线程很少获得执行机会
+   - **资源分配不均**：某些线程总是能获得资源，而其他线程始终等待
+   - **优先级设置不当**：低优先级线程在高负载情况下永远得不到执行
+   
+   饥饿虽然不会导致系统完全停止，但会严重影响系统的响应性和公平性。
 
 ### 19.1.2 并发测试的挑战
+
+并发测试面临着独特的挑战，这些挑战源于并发执行的本质特性。理解这些挑战有助于选择合适的测试策略和工具。
+
+**1. 非确定性（Non-determinism）**
+
+并发程序的最大特点是执行的非确定性。相同的输入在不同运行中可能产生不同的结果，这是由于：
+- 线程调度的不可预测性：操作系统调度器的决策受多种因素影响
+- 硬件层面的不确定性：缓存命中率、内存访问延迟等
+- 外部事件的影响：中断、I/O操作完成时间等
+
+这种非确定性使得传统的"运行一次通过即可"的测试方法失效。
+
+**2. 调度敏感性（Schedule Sensitivity）**
+
+许多并发缺陷只在特定的线程交错执行顺序下才会显现。考虑两个线程各执行n条指令，可能的交错方式数量是C(2n,n)，随着n增长呈指数级增长。在实际测试中，我们只能覆盖极小一部分可能的调度。
+
+**3. 海森堡效应（Heisenberg Effect）**
+
+这个术语借用自量子物理，描述了观测行为本身改变被观测系统的现象。在并发测试中表现为：
+- 添加日志语句可能改变线程时序，使原本存在的bug消失
+- 调试器的介入改变程序执行特性
+- 性能监控工具影响线程调度
+
+这使得调试并发程序变得极其困难。
+
+**4. 状态空间爆炸（State Space Explosion）**
+
+并发系统的状态空间随着线程数量和同步点数量呈指数增长。完全探索所有可能状态在实践中是不可行的，必须采用智能的剪枝和采样策略。
+
+**5. 硬件和平台依赖性**
+
+并发行为强烈依赖于底层硬件和平台：
+- CPU核心数影响实际的并行度
+- 内存模型（如x86的TSO vs ARM的弱内存模型）影响指令重排
+- 缓存架构影响false sharing等性能问题
+- 不同操作系统的调度策略差异
+
+**6. 时间相关性（Timing Dependencies）**
+
+某些并发缺陷只在特定的时间窗口内出现：
+- 竞态条件可能需要精确的时间对齐
+- 性能相关的并发问题（如惊群效应）只在高负载下出现
+- 某些缺陷需要特定的执行速度比例
 
 ```python
 class ConcurrencyTestingChallenges:
     def why_concurrent_bugs_are_hard(self):
+        """总结并发缺陷难以测试的原因"""
         return {
-            "非确定性": "相同输入可能产生不同结果",
-            "调度敏感": "错误依赖特定的线程调度",
-            "海森堡效应": "观测行为改变程序执行",
-            "状态空间爆炸": "可能的交错执行数量指数增长",
-            "硬件依赖": "不同硬件表现不同"
+            "非确定性": "相同输入可能产生不同结果，难以重现问题",
+            "调度敏感": "错误依赖特定的线程调度序列",
+            "海森堡效应": "观测和调试行为改变程序执行特性",
+            "状态空间爆炸": "可能的交错执行数量随线程数指数增长",
+            "硬件依赖": "不同硬件架构和配置表现不同",
+            "时间窗口": "某些缺陷只在极短的时间窗口内可观察",
+            "复合效应": "多个并发缺陷相互作用，增加复杂性"
         }
     
+    def quantify_interleaving_space(self, num_threads, instructions_per_thread):
+        """量化可能的交错执行空间大小"""
+        # 对于n个线程，每个执行m条指令
+        # 可能的交错数量是多项式系数
+        from math import factorial
+        
+        total_instructions = num_threads * instructions_per_thread
+        
+        # 计算多项式系数：(n*m)! / (m!)^n
+        numerator = factorial(total_instructions)
+        denominator = factorial(instructions_per_thread) ** num_threads
+        
+        return numerator // denominator
+    
     def demonstrate_nondeterminism(self):
-        # 简单的竞态条件示例
-        counter = 0
+        """演示并发的非确定性"""
+        # 一个简单但具有教育意义的例子
+        # 展示了即使是最简单的并发程序也可能出现意外行为
         
-        def increment():
-            global counter
-            temp = counter
-            # 在这里可能发生上下文切换
-            counter = temp + 1
+        # 示例：两个线程递增共享计数器
+        # 每个线程执行：读取 -> 计算 -> 写入
+        # 可能的交错：
+        # 1. T1读(0) -> T1算(1) -> T1写(1) -> T2读(1) -> T2算(2) -> T2写(2) ✓
+        # 2. T1读(0) -> T2读(0) -> T1算(1) -> T2算(1) -> T1写(1) -> T2写(1) ✗
+        # 3. T1读(0) -> T2读(0) -> T2算(1) -> T1算(1) -> T2写(1) -> T1写(1) ✗
+        # ... 还有更多可能
         
-        # 多次运行可能得到不同结果
-        # 期望: counter = 2
-        # 实际: counter 可能是 1 或 2
+        # 这个简单例子展示了：
+        # - 6个操作有20种可能的交错方式
+        # - 其中只有部分能产生正确结果
+        # - 实际运行时哪种交错发生是不确定的
+        pass
 ```
 
 ### 19.1.3 happens-before关系
 
-理解并发的关键是happens-before关系：
+happens-before关系是理解和分析并发程序行为的核心概念。它定义了操作之间的偏序关系，帮助我们推理哪些执行顺序是合法的，哪些可能导致数据竞争。
+
+**happens-before的定义**
+
+如果操作A happens-before操作B（记作A → B），意味着：
+- A的效果对B可见
+- A在逻辑时间上先于B发生
+- 不存在数据竞争的情况下，B能观察到A的结果
+
+重要的是，happens-before是偏序关系，不是全序。两个操作可能没有happens-before关系，这时它们被认为是并发的。
+
+**基本的happens-before规则**
+
+1. **程序顺序规则（Program Order Rule）**
+   - 在同一个线程内，按照程序代码顺序，前面的操作happens-before后面的操作
+   - 这保证了单线程程序的语义
+
+2. **监视器锁规则（Monitor Lock Rule）**
+   - 对一个锁的unlock操作happens-before后续对同一个锁的lock操作
+   - 这确保了临界区的互斥访问和可见性
+
+3. **volatile变量规则**
+   - 对volatile变量的写操作happens-before后续对同一变量的读操作
+   - volatile提供了轻量级的同步机制
+
+4. **线程启动规则（Thread Start Rule）**
+   - Thread.start()的调用happens-before被启动线程中的任何操作
+   - 确保线程启动前的初始化对新线程可见
+
+5. **线程终止规则（Thread Termination Rule）**
+   - 线程中的任何操作happens-before其他线程从Thread.join()成功返回
+   - 保证线程结束后其结果对其他线程可见
+
+6. **中断规则（Interruption Rule）**
+   - 对线程interrupt()的调用happens-before被中断线程检测到中断事件
+
+7. **传递性规则（Transitivity）**
+   - 如果A happens-before B，且B happens-before C，则A happens-before C
+   - 这允许我们链接多个happens-before关系进行推理
 
 ```python
 class HappensBeforeRelation:
     def basic_rules(self):
-        return [
-            "程序顺序规则：同一线程内的操作按程序顺序",
-            "锁规则：unlock happens-before 后续的lock",
-            "volatile规则：写volatile happens-before 读",
-            "线程启动规则：start() happens-before 线程内操作",
-            "线程终止规则：线程内操作 happens-before join()返回"
-        ]
+        """happens-before的基本规则及其含义"""
+        return {
+            "程序顺序规则": {
+                "描述": "同一线程内的操作按程序顺序排序",
+                "示例": "int a = 1; int b = 2; // a的赋值 happens-before b的赋值",
+                "作用": "保证单线程语义"
+            },
+            "监视器锁规则": {
+                "描述": "unlock操作 happens-before 后续的lock操作",
+                "示例": "线程1 unlock(m) happens-before 线程2 lock(m)",
+                "作用": "确保临界区的可见性"
+            },
+            "volatile规则": {
+                "描述": "volatile写 happens-before volatile读",
+                "示例": "volatile_write(v, 1) happens-before volatile_read(v)",
+                "作用": "轻量级同步"
+            },
+            "线程启动规则": {
+                "描述": "start() happens-before 线程内的任何操作",
+                "示例": "parent.start(child) happens-before child.run()",
+                "作用": "初始化可见性"
+            },
+            "线程终止规则": {
+                "描述": "线程内操作 happens-before join()返回",
+                "示例": "child.operation() happens-before parent.join(child)",
+                "作用": "结果可见性"
+            }
+        }
     
-    def transitivity(self):
-        # 如果 A happens-before B 且 B happens-before C
-        # 则 A happens-before C
-        pass
+    def construct_happens_before_graph(self, execution_trace):
+        """从执行轨迹构建happens-before图"""
+        # happens-before图是一个有向无环图(DAG)
+        # 节点是内存操作，边表示happens-before关系
+        
+        graph = {}  # operation -> set of operations it happens-before
+        
+        # 1. 添加程序顺序边
+        for thread_ops in execution_trace.get_thread_operations():
+            for i in range(len(thread_ops) - 1):
+                self.add_edge(graph, thread_ops[i], thread_ops[i+1])
+        
+        # 2. 添加同步边
+        for sync_pair in execution_trace.get_synchronization_pairs():
+            self.add_edge(graph, sync_pair.release, sync_pair.acquire)
+        
+        # 3. 计算传递闭包
+        self.transitive_closure(graph)
+        
+        return graph
+    
+    def detect_concurrent_operations(self, hb_graph, op1, op2):
+        """检测两个操作是否并发（没有happens-before关系）"""
+        # 如果 op1 → op2 或 op2 → op1，则它们有序
+        # 否则它们是并发的
+        
+        if op2 in hb_graph.get(op1, set()):
+            return False  # op1 happens-before op2
+        
+        if op1 in hb_graph.get(op2, set()):
+            return False  # op2 happens-before op1
+        
+        return True  # 并发操作
+    
+    def identify_race_conditions(self, hb_graph, memory_accesses):
+        """使用happens-before关系识别潜在的数据竞争"""
+        races = []
+        
+        # 对每对访问同一内存位置的操作
+        for loc in memory_accesses:
+            ops = memory_accesses[loc]
+            for i, op1 in enumerate(ops):
+                for op2 in ops[i+1:]:
+                    # 至少一个是写操作
+                    if op1.is_write or op2.is_write:
+                        # 检查是否并发
+                        if self.detect_concurrent_operations(hb_graph, op1, op2):
+                            races.append((op1, op2, loc))
+        
+        return races
 ```
 
 ### 练习 19.1
@@ -79,7 +273,7 @@ class HappensBeforeRelation:
 <details>
 <summary>点击查看练习</summary>
 
-**问题**：分析以下代码的潜在并发问题：
+**问题1**：分析以下银行账户类的潜在并发问题，并提出修复方案。
 
 ```java
 class BankAccount {
@@ -102,133 +296,652 @@ class BankAccount {
 }
 ```
 
+**问题2**：画出两个线程同时调用deposit(100)时可能的执行交错，并说明哪些交错会导致错误结果。
+
+**问题3**：如果我们简单地在每个方法上加synchronized，transfer方法还会有什么问题？
+
 **参考答案**：
 
-1. **数据竞争**：balance的读写没有同步保护
-   - deposit和withdraw中的`balance = balance + amount`不是原子操作
-   
-2. **原子性违反**：transfer方法应该是原子的
-   - withdraw和deposit之间可能被中断
-   - 可能导致钱"消失"或"凭空产生"
+1. **识别的并发问题**：
 
-3. **条件竞争**：withdraw中的检查-执行模式
-   - 在检查余额和扣款之间，余额可能被其他线程修改
+   a) **数据竞争（Data Race）**
+   - `balance = balance + amount`不是原子操作，实际包含三步：读取balance、计算新值、写回balance
+   - 多个线程同时执行时，可能读到相同的旧值，导致更新丢失
    
-4. **潜在死锁**：如果两个账户互相转账
-   - A转给B的同时B转给A，可能死锁（需要按顺序获取锁）
+   b) **原子性违反（Atomicity Violation）**
+   - transfer方法逻辑上应该是原子操作（要么全部成功，要么全部失败）
+   - 当前实现中，withdraw成功后如果线程被中断，deposit可能不执行
+   - 更糟的是，如果withdraw检查通过但执行前其他线程修改了余额，可能导致透支
+   
+   c) **检查-然后-执行（Check-Then-Act）竞态**
+   - withdraw方法中，检查余额和实际扣款之间存在时间窗口
+   - 其他线程可能在这个窗口内修改余额，导致透支
+   
+   d) **潜在死锁（Potential Deadlock）**
+   - 如果两个线程同时执行相反方向的转账（A→B和B→A）
+   - 使用简单的同步可能导致循环等待
 
-修复方案：使用synchronized或ReentrantLock保护所有方法，transfer中按账户ID顺序获取锁避免死锁。
+2. **deposit(100)的执行交错分析**：
+
+   假设初始balance = 1000，两个线程T1和T2同时调用deposit(100)：
+   
+   正确的交错（结果=1200）：
+   ```
+   T1: read balance (1000)
+   T1: compute 1000+100
+   T1: write balance (1100)
+   T2: read balance (1100)
+   T2: compute 1100+100
+   T2: write balance (1200) ✓
+   ```
+   
+   错误的交错（结果=1100，丢失更新）：
+   ```
+   T1: read balance (1000)
+   T2: read balance (1000)  // 也读到1000
+   T1: compute 1000+100
+   T2: compute 1000+100     // 都计算出1100
+   T1: write balance (1100)
+   T2: write balance (1100) ✗ // T1的更新丢失
+   ```
+
+3. **简单synchronized的问题**：
+
+   ```java
+   public synchronized void transfer(BankAccount to, int amount) {
+       this.withdraw(amount);  // 释放this的锁
+       to.deposit(amount);     // 尝试获取to的锁
+   }
+   ```
+   
+   问题：
+   - synchronized是可重入的，但只对同一个对象
+   - withdraw调用会成功（同一对象），但deposit需要获取另一个账户的锁
+   - 如果A.transfer(B, 100)和B.transfer(A, 200)同时执行，可能死锁
+
+**完整的修复方案**：
+
+```java
+class BankAccount {
+    private int balance;
+    private final long id;  // 用于锁顺序
+    
+    public synchronized void deposit(int amount) {
+        balance = balance + amount;
+    }
+    
+    public synchronized void withdraw(int amount) throws InsufficientFundsException {
+        if (balance < amount) {
+            throw new InsufficientFundsException();
+        }
+        balance = balance - amount;
+    }
+    
+    public void transfer(BankAccount to, int amount) throws InsufficientFundsException {
+        // 按ID顺序获取锁，避免死锁
+        BankAccount first = this.id < to.id ? this : to;
+        BankAccount second = this.id < to.id ? to : this;
+        
+        synchronized(first) {
+            synchronized(second) {
+                this.withdraw(amount);
+                to.deposit(amount);
+            }
+        }
+    }
+}
+```
+
+**进一步思考**：
+- 这个解决方案假设了账户ID的唯一性和不变性
+- 在高并发场景下，全局锁顺序可能成为瓶颈
+- 考虑使用更细粒度的锁或无锁算法进行优化
 
 </details>
 
 ## 19.2 系统化的并发测试方法
 
+有效的并发测试需要系统化的方法论。本节介绍几种经过实践验证的并发测试技术，每种都有其适用场景和优缺点。
+
 ### 19.2.1 压力测试
 
-通过增加并发度来暴露问题：
+压力测试是最直观的并发测试方法，通过创造高并发、高负载的环境来增加暴露并发缺陷的概率。虽然不能保证发现所有问题，但实践证明这是发现常见并发缺陷的有效方法。
+
+**压力测试的核心策略**
+
+1. **超额订阅（Over-subscription）**
+   - 创建远超CPU核心数的线程，强制频繁的上下文切换
+   - 增加线程交错的多样性
+
+2. **同步启动（Synchronized Start）**
+   - 使用屏障或闭锁让所有线程同时开始执行
+   - 最大化竞争窗口
+
+3. **负载变化（Load Variation）**
+   - 改变工作负载大小，测试不同压力下的行为
+   - 某些缺陷只在特定负载水平下出现
+
+4. **资源竞争（Resource Contention）**
+   - 故意创造资源瓶颈，如减少连接池大小
+   - 暴露资源管理相关的并发问题
 
 ```python
 class StressTesting:
     def design_stress_test(self, target_function, shared_resource):
-        """设计压力测试暴露并发问题"""
+        """设计综合性压力测试框架"""
         
-        def stress_test_framework():
-            num_threads = cpu_count() * 4  # 超额订阅
-            iterations = 10000
+        class StressTestConfig:
+            def __init__(self):
+                self.thread_counts = [1, 2, 4, 8, 16, 32, 64, 128]  # 递增的线程数
+                self.iterations = 10000
+                self.warmup_iterations = 100
+                self.barrier_sync = True  # 是否同步启动
+                self.inject_delays = True  # 是否注入随机延迟
+                self.monitor_performance = True
+        
+        def stress_test_framework(config):
+            results = {
+                'errors': [],
+                'performance': {},
+                'invariant_violations': []
+            }
             
-            # 1. 预热阶段
-            warmup_threads(target_function)
-            
-            # 2. 施加压力
-            results = []
-            for _ in range(iterations):
-                threads = [
-                    Thread(target=target_function, args=(shared_resource,))
-                    for _ in range(num_threads)
-                ]
+            for num_threads in config.thread_counts:
+                print(f"Testing with {num_threads} threads...")
                 
-                # 使用屏障同步启动
-                barrier = Barrier(num_threads)
+                # 1. 预热阶段 - JIT编译优化，缓存预热
+                if config.warmup_iterations > 0:
+                    self._warmup(target_function, shared_resource, 
+                                config.warmup_iterations)
                 
-                # 启动所有线程
-                for t in threads:
-                    t.start()
+                # 2. 压力测试主循环
+                start_time = time.time()
+                errors_at_level = 0
                 
-                # 等待完成
-                for t in threads:
-                    t.join()
+                for iteration in range(config.iterations):
+                    # 重置共享资源到已知状态
+                    shared_resource.reset()
+                    
+                    # 创建线程
+                    threads = []
+                    if config.barrier_sync:
+                        barrier = threading.Barrier(num_threads)
+                    
+                    for i in range(num_threads):
+                        t = Thread(
+                            target=self._worker,
+                            args=(target_function, shared_resource, 
+                                  barrier if config.barrier_sync else None,
+                                  config.inject_delays)
+                        )
+                        threads.append(t)
+                    
+                    # 启动所有线程
+                    for t in threads:
+                        t.start()
+                    
+                    # 等待完成
+                    for t in threads:
+                        t.join()
+                    
+                    # 3. 验证不变量
+                    violations = self._check_invariants(shared_resource)
+                    if violations:
+                        results['invariant_violations'].extend(violations)
+                        errors_at_level += 1
                 
-                # 验证不变量
-                if not check_invariants(shared_resource):
-                    results.append("Invariant violation detected")
+                # 记录性能数据
+                elapsed = time.time() - start_time
+                results['performance'][num_threads] = {
+                    'total_time': elapsed,
+                    'ops_per_second': (config.iterations * num_threads) / elapsed,
+                    'error_rate': errors_at_level / config.iterations
+                }
             
             return results
+    
+    def _worker(self, target_function, shared_resource, barrier, inject_delays):
+        """工作线程的执行逻辑"""
+        if barrier:
+            barrier.wait()  # 同步启动
+        
+        try:
+            if inject_delays and random.random() < 0.1:
+                # 10%概率注入0-10ms的随机延迟
+                time.sleep(random.uniform(0, 0.01))
+            
+            target_function(shared_resource)
+            
+        except Exception as e:
+            # 记录但不抛出异常，继续测试
+            self._log_error(e)
+    
+    def _check_invariants(self, shared_resource):
+        """检查共享资源的不变量"""
+        violations = []
+        
+        # 示例不变量检查
+        if hasattr(shared_resource, 'check_consistency'):
+            if not shared_resource.check_consistency():
+                violations.append({
+                    'type': 'consistency',
+                    'details': shared_resource.get_state()
+                })
+        
+        if hasattr(shared_resource, 'total_sum'):
+            expected = shared_resource.get_expected_sum()
+            actual = shared_resource.total_sum()
+            if expected != actual:
+                violations.append({
+                    'type': 'sum_mismatch',
+                    'expected': expected,
+                    'actual': actual
+                })
+        
+        return violations
+    
+    def adaptive_stress_test(self, target_function, shared_resource):
+        """自适应压力测试：根据错误率动态调整参数"""
+        
+        config = {
+            'threads': 4,
+            'iterations': 100,
+            'delay_probability': 0.0
+        }
+        
+        while config['iterations'] < 10000:
+            error_rate = self._run_test_round(target_function, shared_resource, config)
+            
+            if error_rate == 0:
+                # 没有发现错误，增加压力
+                config['threads'] *= 2
+                config['delay_probability'] += 0.1
+            elif error_rate > 0.5:
+                # 错误率过高，稍微降低压力以获得更稳定的重现
+                config['threads'] = max(1, config['threads'] // 2)
+            
+            # 如果发现错误，增加迭代次数以收集更多数据
+            if error_rate > 0:
+                config['iterations'] *= 2
+            
+            print(f"Adjusted config: {config}, error_rate: {error_rate}")
 ```
 
 ### 19.2.2 调度探索
 
-主动探索不同的线程交错：
+压力测试依赖随机性，可能错过罕见但重要的执行序列。调度探索技术通过系统化地控制线程调度来提供更强的保证。这类技术的核心思想是将非确定性的调度转化为可控的、可重现的执行序列。
+
+**调度探索的关键概念**
+
+1. **调度决策点（Scheduling Decision Points）**
+   - 程序中可能发生线程切换的位置
+   - 包括同步操作、共享内存访问、系统调用等
+
+2. **调度空间（Schedule Space）**
+   - 所有可能的线程交错执行序列的集合
+   - 大小随程序复杂度呈指数增长
+
+3. **探索策略（Exploration Strategy）**
+   - 如何选择要测试的调度序列
+   - 平衡覆盖率和测试时间
 
 ```python
 class ScheduleExploration:
     def systematic_exploration(self):
-        """系统化探索可能的调度"""
+        """系统化探索可能的调度序列"""
         
         class ScheduleController:
             def __init__(self):
-                self.decision_points = []
-                self.explored_schedules = set()
+                self.decision_points = []  # 记录所有决策点
+                self.current_schedule = []  # 当前执行的调度序列
+                self.explored_schedules = set()  # 已探索的调度
+                self.pending_schedules = []  # 待探索的调度
+                self.execution_tree = {}  # 执行树结构
             
-            def at_decision_point(self, thread_id, choices):
-                """在调度决策点记录和控制"""
-                point = (thread_id, tuple(choices))
-                self.decision_points.append(point)
+            def at_decision_point(self, active_threads, current_thread):
+                """在调度决策点被调用"""
                 
-                # 选择下一个要执行的线程
-                return self.make_scheduling_decision(choices)
+                # 记录决策点信息
+                decision_point = {
+                    'id': len(self.decision_points),
+                    'active_threads': active_threads.copy(),
+                    'current_thread': current_thread,
+                    'location': self.get_program_location()
+                }
+                self.decision_points.append(decision_point)
+                
+                # 如果正在重放，按照预定调度执行
+                if self.is_replaying():
+                    return self.get_next_scheduled_thread()
+                
+                # 否则，选择下一个线程并记录
+                next_thread = self.make_scheduling_decision(active_threads)
+                self.current_schedule.append((decision_point['id'], next_thread))
+                
+                # 记录其他可能的选择供后续探索
+                for thread in active_threads:
+                    if thread != next_thread:
+                        alternative = self.current_schedule[:-1] + [(decision_point['id'], thread)]
+                        if tuple(alternative) not in self.explored_schedules:
+                            self.pending_schedules.append(alternative)
+                
+                return next_thread
+            
+            def make_scheduling_decision(self, active_threads):
+                """决定下一个要执行的线程"""
+                # 策略1: 深度优先 - 总是选择ID最小的线程
+                # return min(active_threads, key=lambda t: t.id)
+                
+                # 策略2: 随机选择增加多样性
+                # return random.choice(active_threads)
+                
+                # 策略3: 优先级引导 - 基于历史信息
+                return self.priority_guided_choice(active_threads)
             
             def explore_all_schedules(self):
-                """深度优先搜索所有可能的调度"""
-                # 使用回溯算法探索调度空间
-                pass
+                """系统化探索所有可能的调度"""
+                
+                # 初始执行
+                self.run_program()
+                self.explored_schedules.add(tuple(self.current_schedule))
+                
+                # 探索所有待定调度
+                while self.pending_schedules:
+                    next_schedule = self.pending_schedules.pop()
+                    
+                    # 检查是否值得探索（剪枝）
+                    if self.should_explore(next_schedule):
+                        self.replay_schedule(next_schedule)
+                        self.explored_schedules.add(tuple(next_schedule))
+                
+                return len(self.explored_schedules)
     
     def partial_order_reduction(self):
-        """减少需要探索的调度数量"""
-        # 识别独立的操作
-        # 只探索具有不同结果的调度
-        pass
+        """偏序约简技术减少需要探索的调度数量"""
+        
+        class PORAnalyzer:
+            def __init__(self):
+                self.independence_cache = {}  # 缓存独立性分析结果
+            
+            def are_independent(self, op1, op2):
+                """判断两个操作是否独立"""
+                
+                # 查缓存
+                key = (op1, op2) if op1 < op2 else (op2, op1)
+                if key in self.independence_cache:
+                    return self.independence_cache[key]
+                
+                # 独立性条件：
+                # 1. 不访问相同的共享变量
+                # 2. 或都是读操作
+                # 3. 不涉及相同的同步对象
+                
+                independent = True
+                
+                # 检查内存访问
+                if op1.memory_access and op2.memory_access:
+                    if op1.address == op2.address:
+                        if op1.is_write or op2.is_write:
+                            independent = False
+                
+                # 检查同步操作
+                if op1.sync_object and op2.sync_object:
+                    if op1.sync_object == op2.sync_object:
+                        independent = False
+                
+                self.independence_cache[key] = independent
+                return independent
+            
+            def compute_persistent_set(self, state, enabled_transitions):
+                """计算持久集 - 只需要探索的转换子集"""
+                
+                # 如果只有一个可能的转换，返回它
+                if len(enabled_transitions) == 1:
+                    return enabled_transitions
+                
+                # 寻找与其他所有转换都独立的转换
+                for t in enabled_transitions:
+                    if all(self.are_independent(t, other) 
+                          for other in enabled_transitions if other != t):
+                        return [t]  # 只需要探索这一个
+                
+                # 否则需要探索所有转换
+                return enabled_transitions
+    
+    def sleep_set_optimization(self):
+        """睡眠集优化进一步减少冗余探索"""
+        
+        class SleepSetOptimizer:
+            def __init__(self):
+                self.sleep_sets = {}  # state -> set of sleeping transitions
+            
+            def update_sleep_set(self, current_state, executed_transition, next_state):
+                """更新睡眠集"""
+                
+                # 从当前状态的睡眠集开始
+                current_sleep = self.sleep_sets.get(current_state, set())
+                next_sleep = set()
+                
+                # 保留与执行转换独立的睡眠转换
+                for sleeping in current_sleep:
+                    if self.are_independent(sleeping, executed_transition):
+                        next_sleep.add(sleeping)
+                
+                # 添加被跳过的使能转换
+                enabled = self.get_enabled_transitions(current_state)
+                for t in enabled:
+                    if t != executed_transition and t not in current_sleep:
+                        # 如果这个转换与执行的转换独立，加入睡眠集
+                        if self.are_independent(t, executed_transition):
+                            next_sleep.add(t)
+                
+                self.sleep_sets[next_state] = next_sleep
 ```
 
 ### 19.2.3 延迟注入
 
-通过注入延迟来增加交错概率：
+延迟注入是一种轻量级但有效的并发测试技术。通过在程序的关键位置注入随机或有策略的延迟，可以改变线程的执行时序，增加暴露并发缺陷的概率。这种方法的优势在于实现简单，对原程序的侵入性小。
+
+**延迟注入的原理**
+
+并发缺陷往往需要特定的时序条件才能触发。在正常执行中，这些时序窗口可能非常短暂。延迟注入通过人为地延长或调整这些时间窗口，使得原本罕见的交错变得更容易发生。
+
+**注入策略**
+
+1. **位置选择**：在哪些地方注入延迟
+2. **延迟大小**：注入多长时间的延迟
+3. **触发条件**：什么情况下注入延迟
+4. **自适应调整**：根据测试效果动态调整策略
 
 ```python
 class DelayInjection:
+    def __init__(self):
+        self.injection_stats = {}  # 统计注入效果
+        self.adaptive_delays = {}  # 自适应延迟参数
+        
     def inject_delays(self, program):
-        """在关键位置注入随机延迟"""
+        """智能延迟注入框架"""
         
-        injection_points = [
-            "获取锁之前",
-            "释放锁之后",
-            "读共享变量之前",
-            "写共享变量之后"
-        ]
+        class DelayInjector:
+            def __init__(self, strategy='adaptive'):
+                self.strategy = strategy
+                self.injection_points = {
+                    'pre_lock': {'base_delay': 0.001, 'variance': 0.005},
+                    'post_unlock': {'base_delay': 0.002, 'variance': 0.003},
+                    'pre_read': {'base_delay': 0.0005, 'variance': 0.001},
+                    'post_write': {'base_delay': 0.001, 'variance': 0.002},
+                    'thread_yield': {'base_delay': 0.0, 'variance': 0.01}
+                }
+                self.injection_history = []
+                
+            def should_inject(self, point_type, context):
+                """决定是否在此处注入延迟"""
+                
+                if self.strategy == 'always':
+                    return True
+                    
+                elif self.strategy == 'random':
+                    # 基于概率的注入
+                    probabilities = {
+                        'pre_lock': 0.3,      # 30%概率在锁前注入
+                        'post_unlock': 0.2,   # 20%概率在解锁后注入
+                        'pre_read': 0.1,      # 10%概率在读前注入
+                        'post_write': 0.15,   # 15%概率在写后注入
+                        'thread_yield': 0.05  # 5%概率主动让步
+                    }
+                    return random.random() < probabilities.get(point_type, 0.1)
+                    
+                elif self.strategy == 'adaptive':
+                    # 基于历史效果自适应调整
+                    return self.adaptive_decision(point_type, context)
+                    
+                elif self.strategy == 'pattern':
+                    # 基于特定模式注入
+                    return self.pattern_based_decision(point_type, context)
+            
+            def calculate_delay(self, point_type, context):
+                """计算注入的延迟时长"""
+                
+                config = self.injection_points[point_type]
+                base = config['base_delay']
+                variance = config['variance']
+                
+                if self.strategy == 'adaptive':
+                    # 根据竞争程度调整延迟
+                    contention_level = self.estimate_contention(context)
+                    base *= (1 + contention_level)
+                
+                # 添加随机性
+                delay = base + random.uniform(-variance, variance)
+                
+                # 确保延迟为正
+                return max(0, delay)
+            
+            def inject(self, point_type, context, operation):
+                """执行延迟注入"""
+                
+                if self.should_inject(point_type, context):
+                    delay = self.calculate_delay(point_type, context)
+                    
+                    # 记录注入信息
+                    injection_info = {
+                        'timestamp': time.time(),
+                        'thread_id': threading.current_thread().ident,
+                        'point_type': point_type,
+                        'delay': delay,
+                        'context': context
+                    }
+                    self.injection_history.append(injection_info)
+                    
+                    # 执行延迟
+                    if delay > 0:
+                        time.sleep(delay)
+                    
+                    # 可选：主动触发调度
+                    if point_type == 'thread_yield':
+                        thread_yield()  # 平台相关的线程让步
+            
+            def adaptive_decision(self, point_type, context):
+                """自适应决策：根据历史效果调整注入策略"""
+                
+                # 分析最近的注入效果
+                recent_injections = self.get_recent_injections(point_type)
+                
+                if not recent_injections:
+                    return True  # 首次注入
+                
+                # 计算效果指标
+                bug_discovery_rate = self.calculate_bug_discovery_rate(recent_injections)
+                performance_impact = self.calculate_performance_impact(recent_injections)
+                
+                # 平衡bug发现率和性能影响
+                if bug_discovery_rate > 0.1:  # 发现bug率高
+                    return True
+                elif performance_impact > 0.5:  # 性能影响过大
+                    return False
+                else:
+                    # 逐渐增加注入概率
+                    return random.random() < (0.1 + bug_discovery_rate * 0.5)
+            
+            def pattern_based_decision(self, point_type, context):
+                """基于模式的注入：识别特定的代码模式"""
+                
+                patterns = {
+                    'double_checked_locking': {
+                        'locations': ['pre_lock', 'post_read'],
+                        'condition': lambda ctx: ctx.get('is_dcl_pattern')
+                    },
+                    'producer_consumer': {
+                        'locations': ['post_write', 'pre_read'],
+                        'condition': lambda ctx: ctx.get('is_queue_operation')
+                    },
+                    'reader_writer': {
+                        'locations': ['pre_lock', 'post_unlock'],
+                        'condition': lambda ctx: ctx.get('is_rw_lock')
+                    }
+                }
+                
+                for pattern_name, pattern_config in patterns.items():
+                    if point_type in pattern_config['locations']:
+                        if pattern_config['condition'](context):
+                            return True
+                
+                return False
         
-        def instrumented_operation(original_op):
-            def wrapper(*args, **kwargs):
-                if should_inject_delay():
-                    sleep(random.uniform(0, 0.01))  # 0-10ms延迟
-                
-                result = original_op(*args, **kwargs)
-                
-                if should_inject_delay():
-                    sleep(random.uniform(0, 0.01))
-                
+        # 创建注入器并应用到程序
+        injector = DelayInjector()
+        
+        # 包装同步原语
+        def wrap_lock_acquire(original_acquire):
+            def wrapped(*args, **kwargs):
+                injector.inject('pre_lock', {'lock': args[0]}, None)
+                result = original_acquire(*args, **kwargs)
                 return result
-            return wrapper
+            return wrapped
         
-        return instrumented_operation
+        def wrap_lock_release(original_release):
+            def wrapped(*args, **kwargs):
+                result = original_release(*args, **kwargs)
+                injector.inject('post_unlock', {'lock': args[0]}, None)
+                return result
+            return wrapped
+        
+        # 返回注入器供程序使用
+        return injector
+    
+    def targeted_delay_injection(self):
+        """针对性延迟注入：专门针对已知的并发模式"""
+        
+        class TargetedInjector:
+            def __init__(self):
+                self.target_patterns = [
+                    'race_on_check',      # 检查时的竞态
+                    'lost_notify',        # 丢失的通知
+                    'aba_problem',        # ABA问题
+                    'priority_inversion'  # 优先级反转
+                ]
+            
+            def inject_for_race_on_check(self, check_operation, action_operation):
+                """在check和action之间注入延迟"""
+                
+                def wrapped_check(*args, **kwargs):
+                    result = check_operation(*args, **kwargs)
+                    # 在检查后注入延迟，增加其他线程介入的机会
+                    time.sleep(random.uniform(0.01, 0.05))
+                    return result
+                
+                return wrapped_check
+            
+            def inject_for_lost_notify(self, wait_operation, notify_operation):
+                """测试丢失通知的情况"""
+                
+                def wrapped_wait(*args, **kwargs):
+                    # 在等待前注入延迟，可能错过通知
+                    if random.random() < 0.3:
+                        time.sleep(0.02)
+                    return wait_operation(*args, **kwargs)
+                
+                return wrapped_wait
 ```
 
 ### 练习 19.2
@@ -236,102 +949,360 @@ class DelayInjection:
 <details>
 <summary>点击查看练习</summary>
 
-**问题**：设计一个测试框架来检测ABA问题。
+**问题1**：设计一个测试框架来系统化地检测ABA问题。ABA问题是指一个值从A变为B，然后又变回A，使得基于值比较的并发算法错误地认为值没有改变。
+
+**问题2**：实现一个调度探索器，能够找出导致特定不变量违反的最短执行序列。
+
+**问题3**：设计一个延迟注入策略，专门用于暴露生产者-消费者模式中的并发缺陷。
 
 **参考答案**：
 
+**答案1：ABA问题检测框架**
+
 ```python
 class ABADetector:
-    """检测ABA问题的测试框架"""
+    """全面的ABA问题检测框架"""
     
     def __init__(self):
-        self.value_history = {}  # 记录每个地址的值历史
-        self.access_log = []      # 记录所有访问
-    
-    def monitor_cas_operation(self, address, expected, new_value):
-        """监控CAS操作检测ABA"""
+        self.value_history = {}  # address -> [(value, thread, timestamp, version)]
+        self.access_log = []      # 所有内存访问的日志
+        self.aba_patterns = []    # 检测到的ABA模式
+        self.version_counters = {}  # 为每个地址维护版本号
         
-        # 记录访问
-        thread_id = current_thread().ident
+    def monitor_memory_access(self, address, value, access_type, thread_id=None):
+        """监控所有内存访问"""
+        
+        if thread_id is None:
+            thread_id = threading.current_thread().ident
+            
         timestamp = time.time()
         
-        self.access_log.append({
-            'thread': thread_id,
-            'time': timestamp,
+        # 记录访问
+        access_info = {
             'address': address,
-            'operation': 'CAS',
-            'expected': expected,
-            'new': new_value
-        })
+            'value': value,
+            'type': access_type,  # 'read', 'write', 'cas'
+            'thread': thread_id,
+            'timestamp': timestamp
+        }
+        self.access_log.append(access_info)
         
-        # 检查值历史
-        if address in self.value_history:
-            history = self.value_history[address]
-            
-            # 检测ABA模式：A -> B -> A
-            if len(history) >= 3:
-                if (history[-3]['value'] == expected and
-                    history[-2]['value'] != expected and
-                    history[-1]['value'] == expected):
-                    
-                    return {
-                        'aba_detected': True,
-                        'pattern': history[-3:],
-                        'message': f"ABA detected at {address}: {history[-3]['value']} -> {history[-2]['value']} -> {history[-1]['value']}"
-                    }
-        
-        # 更新历史
+        # 更新值历史
         if address not in self.value_history:
             self.value_history[address] = []
+            self.version_counters[address] = 0
         
-        self.value_history[address].append({
-            'value': new_value,
-            'thread': thread_id,
-            'time': timestamp
-        })
-        
-        return {'aba_detected': False}
+        if access_type in ['write', 'cas']:
+            # 递增版本号
+            self.version_counters[address] += 1
+            
+            self.value_history[address].append({
+                'value': value,
+                'thread': thread_id,
+                'timestamp': timestamp,
+                'version': self.version_counters[address]
+            })
+            
+            # 检测ABA模式
+            self._detect_aba_pattern(address)
     
-    def create_aba_test(self):
-        """创建一个故意触发ABA的测试"""
+    def _detect_aba_pattern(self, address):
+        """检测给定地址的ABA模式"""
         
-        shared_ptr = AtomicPointer(initial_value='A')
-        aba_detected = False
+        history = self.value_history[address]
         
-        def thread1():
-            # 读取值A
-            old_value = shared_ptr.get()  # 'A'
+        if len(history) < 3:
+            return
+        
+        # 检查最近的值变化
+        for i in range(len(history) - 2):
+            for j in range(i + 2, len(history)):
+                if history[i]['value'] == history[j]['value']:
+                    # 找到A...A模式，检查中间是否有不同值
+                    intermediate_values = [h['value'] for h in history[i+1:j]]
+                    if intermediate_values and any(v != history[i]['value'] for v in intermediate_values):
+                        # 发现ABA模式
+                        aba_info = {
+                            'address': address,
+                            'pattern': history[i:j+1],
+                            'start_version': history[i]['version'],
+                            'end_version': history[j]['version'],
+                            'duration': history[j]['timestamp'] - history[i]['timestamp'],
+                            'threads_involved': list(set(h['thread'] for h in history[i:j+1]))
+                        }
+                        self.aba_patterns.append(aba_info)
+                        
+                        # 分析潜在影响
+                        self._analyze_aba_impact(aba_info)
+    
+    def _analyze_aba_impact(self, aba_info):
+        """分析ABA问题的潜在影响"""
+        
+        # 查找在ABA期间的CAS操作
+        start_time = aba_info['pattern'][0]['timestamp']
+        end_time = aba_info['pattern'][-1]['timestamp']
+        address = aba_info['address']
+        
+        affected_cas = []
+        for access in self.access_log:
+            if (access['type'] == 'cas' and 
+                access['address'] == address and
+                start_time <= access['timestamp'] <= end_time):
+                affected_cas.append(access)
+        
+        if affected_cas:
+            print(f"WARNING: {len(affected_cas)} CAS operations potentially affected by ABA")
             
-            # 模拟长时间操作
-            sleep(0.1)
+    def create_aba_test_scenario(self):
+        """创建各种ABA测试场景"""
+        
+        scenarios = []
+        
+        # 场景1：简单的ABA
+        def simple_aba():
+            shared_value = {'data': 'A', 'count': 0}
             
-            # CAS操作，期望值仍是A
-            success = shared_ptr.compare_and_swap(old_value, 'C')
+            def reader_thread():
+                # 读取初始值
+                initial = shared_value['data']
+                self.monitor_memory_access(id(shared_value), initial, 'read')
+                
+                # 模拟处理时间
+                time.sleep(0.1)
+                
+                # 基于旧值的CAS操作
+                if shared_value['data'] == initial:
+                    shared_value['data'] = 'C'
+                    shared_value['count'] += 1
+                    self.monitor_memory_access(id(shared_value), 'C', 'cas')
             
-            if success and self.monitor_cas_operation(
-                id(shared_ptr), old_value, 'C')['aba_detected']:
-                nonlocal aba_detected
-                aba_detected = True
+            def modifier_thread():
+                time.sleep(0.05)
+                
+                # A -> B
+                shared_value['data'] = 'B'
+                self.monitor_memory_access(id(shared_value), 'B', 'write')
+                
+                time.sleep(0.01)
+                
+                # B -> A (造成ABA)
+                shared_value['data'] = 'A'
+                self.monitor_memory_access(id(shared_value), 'A', 'write')
+            
+            return reader_thread, modifier_thread
         
-        def thread2():
-            # 快速执行 A -> B -> A
-            sleep(0.05)
-            shared_ptr.set('B')
-            sleep(0.01)
-            shared_ptr.set('A')
+        # 场景2：链表节点的ABA
+        def linked_list_aba():
+            class Node:
+                def __init__(self, value, next=None):
+                    self.value = value
+                    self.next = next
+            
+            head = Node('A')
+            
+            def pop_thread():
+                # 尝试移除头节点
+                old_head = head
+                self.monitor_memory_access(id(head), old_head, 'read')
+                
+                time.sleep(0.1)  # 模拟延迟
+                
+                # CAS操作
+                if head == old_head:
+                    head = old_head.next
+                    self.monitor_memory_access(id(head), head, 'cas')
+            
+            def manipulator_thread():
+                time.sleep(0.05)
+                
+                # 修改链表结构但保持head不变
+                original_head = head
+                original_next = head.next
+                
+                # 临时改变
+                new_node = Node('B')
+                head.next = new_node
+                
+                time.sleep(0.01)
+                
+                # 恢复原状（ABA）
+                head.next = original_next
+                
+            return pop_thread, manipulator_thread
         
-        # 运行测试
-        t1 = Thread(target=thread1)
-        t2 = Thread(target=thread2)
-        
-        t1.start()
-        t2.start()
-        
-        t1.join()
-        t2.join()
-        
-        return aba_detected
+        return scenarios
 ```
+
+**答案2：最短违反序列探索器**
+
+```python
+class ShortestViolationFinder:
+    """找出导致不变量违反的最短执行序列"""
+    
+    def __init__(self, program, invariant):
+        self.program = program
+        self.invariant = invariant
+        self.shortest_violation = None
+        self.explored_sequences = set()
+        
+    def find_shortest_violation(self):
+        """使用BFS找出最短的违反序列"""
+        
+        from collections import deque
+        
+        # 初始状态
+        initial_state = self.program.get_initial_state()
+        queue = deque([(initial_state, [])])  # (state, sequence)
+        
+        while queue:
+            current_state, sequence = queue.popleft()
+            
+            # 检查不变量
+            if not self.invariant(current_state):
+                # 找到违反！检查是否是最短的
+                if self.shortest_violation is None or len(sequence) < len(self.shortest_violation):
+                    self.shortest_violation = sequence
+                    print(f"Found violation with length {len(sequence)}")
+                continue  # 不再探索这个分支
+            
+            # 获取所有可能的转换
+            transitions = self.get_enabled_transitions(current_state)
+            
+            for transition in transitions:
+                new_state = self.apply_transition(current_state, transition)
+                new_sequence = sequence + [transition]
+                
+                # 剪枝：如果已经比当前最短的长，跳过
+                if self.shortest_violation and len(new_sequence) >= len(self.shortest_violation):
+                    continue
+                
+                # 剪枝：如果这个序列已经探索过，跳过
+                seq_hash = self.hash_sequence(new_sequence)
+                if seq_hash in self.explored_sequences:
+                    continue
+                
+                self.explored_sequences.add(seq_hash)
+                queue.append((new_state, new_sequence))
+        
+        return self.shortest_violation
+    
+    def minimize_violation_sequence(self, violation_sequence):
+        """最小化违反序列，移除不必要的操作"""
+        
+        # 尝试移除每个操作，看是否仍然违反
+        minimized = violation_sequence.copy()
+        i = 0
+        
+        while i < len(minimized):
+            # 尝试移除第i个操作
+            test_sequence = minimized[:i] + minimized[i+1:]
+            
+            # 检查是否仍然导致违反
+            if self.verify_violation(test_sequence):
+                minimized = test_sequence
+                # 不增加i，因为列表变短了
+            else:
+                i += 1
+        
+        return minimized
+```
+
+**答案3：生产者-消费者专用延迟注入**
+
+```python
+class ProducerConsumerDelayInjector:
+    """针对生产者-消费者模式的延迟注入策略"""
+    
+    def __init__(self):
+        self.buffer_states = {}  # 跟踪缓冲区状态
+        self.injection_points = {
+            'before_produce': 0.1,
+            'after_produce': 0.05,
+            'before_consume': 0.15,
+            'after_consume': 0.05,
+            'buffer_full': 0.3,    # 缓冲区满时注入更多延迟
+            'buffer_empty': 0.3    # 缓冲区空时注入更多延迟
+        }
+        
+    def inject_delays(self, queue_operations):
+        """包装队列操作以注入延迟"""
+        
+        def wrapped_put(queue, item):
+            # 在生产前注入延迟
+            if self.should_inject('before_produce'):
+                delay = self.calculate_delay('before_produce', queue)
+                time.sleep(delay)
+            
+            # 如果缓冲区将满，注入额外延迟
+            if queue.qsize() >= queue.maxsize - 1:
+                if self.should_inject('buffer_full'):
+                    time.sleep(self.calculate_delay('buffer_full', queue))
+            
+            result = queue.put(item)
+            
+            # 在生产后注入延迟
+            if self.should_inject('after_produce'):
+                time.sleep(self.calculate_delay('after_produce', queue))
+            
+            return result
+        
+        def wrapped_get(queue):
+            # 在消费前注入延迟
+            if self.should_inject('before_consume'):
+                delay = self.calculate_delay('before_consume', queue)
+                time.sleep(delay)
+            
+            # 如果缓冲区将空，注入额外延迟
+            if queue.qsize() <= 1:
+                if self.should_inject('buffer_empty'):
+                    time.sleep(self.calculate_delay('buffer_empty', queue))
+            
+            result = queue.get()
+            
+            # 在消费后注入延迟
+            if self.should_inject('after_consume'):
+                time.sleep(self.calculate_delay('after_consume', queue))
+            
+            return result
+        
+        return wrapped_put, wrapped_get
+    
+    def calculate_delay(self, injection_point, queue):
+        """根据队列状态计算延迟"""
+        
+        base_delay = self.injection_points[injection_point]
+        
+        # 根据队列填充程度调整
+        if queue.maxsize > 0:
+            fill_ratio = queue.qsize() / queue.maxsize
+            
+            if injection_point == 'buffer_full' and fill_ratio > 0.8:
+                # 缓冲区快满时增加延迟
+                base_delay *= (1 + fill_ratio)
+            elif injection_point == 'buffer_empty' and fill_ratio < 0.2:
+                # 缓冲区快空时增加延迟
+                base_delay *= (2 - fill_ratio)
+        
+        # 添加随机性
+        return base_delay * random.uniform(0.5, 1.5)
+    
+    def detect_pc_bugs(self):
+        """检测常见的生产者-消费者bug"""
+        
+        detectors = {
+            'lost_wakeup': self.detect_lost_wakeup,
+            'spurious_wakeup': self.detect_spurious_wakeup,
+            'buffer_overflow': self.detect_buffer_overflow,
+            'race_condition': self.detect_race_condition
+        }
+        
+        return detectors
+```
+
+**进一步练习**：
+1. 扩展ABA检测器，使其能够提供修复建议
+2. 实现一个可视化工具，展示调度探索的过程
+3. 设计一个机器学习模型，根据代码模式预测最佳的延迟注入点
 
 </details>
 
